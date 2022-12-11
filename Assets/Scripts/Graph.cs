@@ -36,10 +36,12 @@ public sealed class Graph {
     public void Generate() {
 
         CreateNodes();
-        DisplayGraph();
 
         CreateCostMatrix();
         CreatePheromoneMatrix();
+
+        DisplayNodes();
+        DisplayLimits();
     }
 
     // Creates the graph's nodes (randomly)
@@ -116,10 +118,13 @@ public sealed class Graph {
         nodesSpawn.GetChild(highlighted).GetComponent<SpriteRenderer>().color = Color.blue;
     }
 
-    // Displays both the nodes and limits of the graph
-    private void DisplayGraph() {
+    // Displays both the nodes of the graph
+    private void DisplayNodes() {
 
-        // ----- NODES ----- > NOT OPTIMAL BUT IT WORKS <
+        // > NOT OPTIMAL BUT IT WORKS <
+
+        if (nodeSprite == null)
+            return;
 
         // Destroy all previous nodes
         for (int i = 0; i < nodesSpawn.childCount; i++) {
@@ -142,8 +147,13 @@ public sealed class Graph {
             Vector3 nodePosOffset = new(nodes[i].x, nodes[i].y + 0.01f, nodes[i].z);
             Object.Instantiate(nodeSprite, nodePosOffset, nodeSprite.transform.rotation, nodesSpawn).transform.localScale = nodeSpriteScale;
         }
+    }
 
-        // ----- LIMITS -----
+    // Displays the limits of the graph
+    private void DisplayLimits() {
+
+        if (limitsLine == null)
+            return;
 
         limitsLine.positionCount = 4;
 
@@ -157,5 +167,6 @@ public sealed class Graph {
         limitsLine.SetPosition(3, new Vector3(-limitWidth, 0, -limitHeight));
     }
 
+    // Public method used on pheromones' reset
     public void ResetPheromones() => CreatePheromoneMatrix();
 }

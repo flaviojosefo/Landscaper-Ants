@@ -749,8 +749,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.19607843, g: 0.42352942, b: 0.4745098, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1175,7 +1175,7 @@ GameObject:
   - component: {fileID: 1500429017}
   - component: {fileID: 1500429018}
   m_Layer: 0
-  m_Name: ACO_Implementation
+  m_Name: ACO_Nodes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1208,7 +1208,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1500429016}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3db7d1e7c1b86940a2e284bd6a9d3fb, type: 3}
+  m_Script: {fileID: 11500000, guid: b8216d63eb346bd41a165ec09f3a8f21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   randomStart: 1
@@ -1228,7 +1228,6 @@ MonoBehaviour:
     nodesSpawn: {fileID: 667781656}
     limitsOffset: 0.25
     limitsLine: {fileID: 2104348816}
-  nodeRadius: 0.15
   trailLine: {fileID: 1457985194}
   itersUI: {fileID: 1559195523}
 --- !u!1 &1559195521

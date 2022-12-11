@@ -6,30 +6,30 @@ using UnityEngine;
 using TMPro;
 using Random = UnityEngine.Random;
 
-public sealed class AntColonyOptimization : MonoBehaviour {
+public abstract class AntColonyOptimization : MonoBehaviour {
 
     [Header("ACO Settings")]
-    [SerializeField] private bool randomStart = false;
-    [SerializeField, Range(1, 10000)] private int maxIterations = 100;
-    [SerializeField, Range(1, 10)] private int nAnts = 2;
-    [SerializeField, Range(0, 10)] private int alpha = 1;
-    [SerializeField, Range(1, 10)] private int beta = 1;
-    [SerializeField, Range(0f, 1f)] private float rho = 0.01f;
-    [SerializeField, Range(1, 5)] private int Q = 1;
+    [SerializeField] protected bool randomStart = false;
+    [SerializeField, Range(1, 10000)] protected int maxIterations = 1000;
+    [SerializeField, Range(1, 10)] protected int nAnts = 2;
+    [SerializeField, Range(0, 10)] protected int alpha = 1;
+    [SerializeField, Range(1, 10)] protected int beta = 1;
+    [SerializeField, Range(0f, 1f)] protected float rho = 0.01f;
+    [SerializeField, Range(1, 5)] protected int Q = 1;
 
-    [SerializeField, Space] private Graph graph;
+    [SerializeField, Space] protected Graph graph;
 
     [Header("Display Settings")]
-    [SerializeField] private LineRenderer trailLine;
-    [SerializeField] private TMP_Text itersUI;
+    [SerializeField] protected LineRenderer trailLine;
+    [SerializeField] protected TMP_Text itersUI;
 
-    private Ant[] ants;
-    private int[] bestTrail;
+    protected Ant[] ants;
+    protected int[] bestTrail;
 
-    private Coroutine aco;
+    protected Coroutine aco;
 
     // Generate a graph on start
-    private void Start() => GenerateGraph();
+    protected virtual void Start() => GenerateGraph();
 
     // Method to generate a new graph
     public void GenerateGraph() {
@@ -153,7 +153,7 @@ public sealed class AntColonyOptimization : MonoBehaviour {
     }
 
     // Gets the cost (distance) of a given trail
-    private float GetTrailCost(int[] trail) {
+    protected virtual float GetTrailCost(int[] trail) {
 
         float trailCost = 0;
 
@@ -297,7 +297,7 @@ public sealed class AntColonyOptimization : MonoBehaviour {
     }
 
     // Displays the best trail as a line renderer
-    private void DisplayBestTrail() {
+    protected virtual void DisplayBestTrail() {
 
         // Define the number of points the line will have
         trailLine.positionCount = bestTrail.Length;

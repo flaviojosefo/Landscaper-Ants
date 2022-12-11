@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 using Random = UnityEngine.Random;
 
 public abstract class AntColonyOptimization : MonoBehaviour {
@@ -19,39 +18,29 @@ public abstract class AntColonyOptimization : MonoBehaviour {
 
     [SerializeField, Space] protected Graph graph;
 
-    [Header("Display Settings")]
-    [SerializeField] protected LineRenderer trailLine;
-    [SerializeField] protected TMP_Text itersUI;
-
     protected Ant[] ants;
     protected int[] bestTrail;
 
     protected Coroutine aco;
 
     // Generate a graph on start
-    protected virtual void Start() => GenerateGraph();
+    protected void Start() => GenerateGraph();
 
     // Method to generate a new graph
-    public void GenerateGraph() {
+    public virtual void GenerateGraph() {
 
         // Create graph and cost and pheromone matrices
-        if (aco is null) {
-            trailLine.positionCount = 0;
-            graph.Generate();
-            print("----- Generated NEW Graph -----");
-        }
+        graph.Generate();
+        print("----- Generated NEW Graph -----");
     }
 
     // Method to generate trails
-    public void GenerateTrail() {
+    public virtual void GenerateTrail() {
 
-        if (aco is null && graph.Nodes is not null) {
-            trailLine.positionCount = 0;
-            graph.ResetPheromones();
-            bestTrail = null;
-            print("----- Started ACO -----");
-            aco = StartCoroutine(Run());
-        }
+        graph.ResetPheromones();
+        bestTrail = null;
+        print("----- Started ACO -----");
+        aco = StartCoroutine(Run());
     }
 
     // ACO main method
@@ -72,7 +61,7 @@ public abstract class AntColonyOptimization : MonoBehaviour {
             GetBestTrail();
 
             iterations++;
-            itersUI.text = $"{iterations}";
+            DisplayIterations(iterations);
 
             yield return null;
         }
@@ -152,8 +141,8 @@ public abstract class AntColonyOptimization : MonoBehaviour {
         return trail;
     }
 
-    // Gets the cost (distance) of a given trail
-    protected virtual float GetTrailCost(int[] trail) {
+    // Gets the cost of a given trail
+    protected float GetTrailCost(int[] trail) {
 
         float trailCost = 0;
 
@@ -269,7 +258,7 @@ public abstract class AntColonyOptimization : MonoBehaviour {
     }
 
     // Get the best trail from all the ants
-    private void GetBestTrail() {
+    protected virtual void GetBestTrail() {
 
         //for (int i = 0; i < ants.Length; i++) {
 
@@ -297,24 +286,8 @@ public abstract class AntColonyOptimization : MonoBehaviour {
     }
 
     // Displays the best trail as a line renderer
-    protected virtual void DisplayBestTrail() {
+    protected abstract void DisplayBestTrail();
 
-        // Define the number of points the line will have
-        trailLine.positionCount = bestTrail.Length;
-        string best = "NEW Best Trial: ";
-
-        // Add each node's position to each available position on the line
-        for (int i = 0; i < bestTrail.Length; i++) {
-
-            best += $"{bestTrail[i]}" + (i + 1 == bestTrail.Length ? "" : "->");
-            trailLine.SetPosition(i, graph.Nodes[bestTrail[i]]);
-        }
-
-        // Update the highlighted node
-        graph.UpdateHighlightedNode(bestTrail[0]);
-
-        // Print a message on the console displaying the best trail and its cost
-        best += $" | Cost: {GetTrailCost(bestTrail)}";
-        print(best);
-    }
+    // Displays the current iteration count
+    protected abstract void DisplayIterations(int iter);
 }

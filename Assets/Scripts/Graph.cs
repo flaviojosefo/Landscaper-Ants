@@ -9,8 +9,8 @@ public sealed class Graph {
 
     [Header("Nodes Generation Settings")]
     [SerializeField, Range(4, 100)] private int nodesAmount = 4;
-    [SerializeField, Range(0, 25f)] private float width = 10f;
-    [SerializeField, Range(0, 10f)] private float height = 10f;
+    [SerializeField, Range(0, 25f)] private float baseDim = 10f;
+    [SerializeField, Range(0, 10f)] private float height = 0f;
     [SerializeField, Range(0.01f, 1f)] private float initPheromones = 0.01f;
 
     [Header("Nodes Display Settings")]
@@ -27,6 +27,8 @@ public sealed class Graph {
     private float[,] pheromoneMatrix; // The pheromones values on all edges
 
     private int highlighted;          // The colored node (always starts at 0)
+
+    public float BaseDim => baseDim;
 
     public Vector3[] Nodes => nodes;
     public float[,] CostMatrix => costMatrix;
@@ -51,10 +53,11 @@ public sealed class Graph {
 
         for (int i = 0; i < nodes.Length; i++) {
 
-            float x = Random.Range(-width, width);
-            float z = Random.Range(-height, height);
+            float x = Random.Range(-baseDim, baseDim);
+            float y = Random.Range(0, height);
+            float z = Random.Range(-baseDim, baseDim);
 
-            nodes[i] = new(x, 0, z);
+            nodes[i] = new(x, y, z);
         }
     }
 
@@ -158,13 +161,12 @@ public sealed class Graph {
         limitsLine.positionCount = 4;
 
         // Add an offset so the limits aren't drawn on top of any nodes
-        float limitWidth = width + limitsOffset;
-        float limitHeight = height + limitsOffset;
+        float limitDim = baseDim + limitsOffset;
 
-        limitsLine.SetPosition(0, new Vector3(-limitWidth, 0, limitHeight));
-        limitsLine.SetPosition(1, new Vector3(limitWidth, 0, limitHeight));
-        limitsLine.SetPosition(2, new Vector3(limitWidth, 0, -limitHeight));
-        limitsLine.SetPosition(3, new Vector3(-limitWidth, 0, -limitHeight));
+        limitsLine.SetPosition(0, new Vector3(-limitDim, 0, limitDim));
+        limitsLine.SetPosition(1, new Vector3(limitDim, 0, limitDim));
+        limitsLine.SetPosition(2, new Vector3(limitDim, 0, -limitDim));
+        limitsLine.SetPosition(3, new Vector3(-limitDim, 0, -limitDim));
     }
 
     // Public method used on pheromones' reset

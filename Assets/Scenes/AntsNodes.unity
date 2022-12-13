@@ -1220,8 +1220,8 @@ MonoBehaviour:
   Q: 1
   graph:
     nodesAmount: 20
-    width: 10
-    height: 10
+    baseDim: 10
+    height: 0
     initPheromones: 1
     nodeRadius: 0.3
     nodeSprite: {fileID: 708356561598592528, guid: 2ddd661523f42d34a9d98124e50cac98, type: 3}

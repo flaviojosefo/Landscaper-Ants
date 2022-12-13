@@ -142,7 +142,7 @@ public abstract class AntColonyOptimization : MonoBehaviour {
     }
 
     // Gets the cost of a given trail
-    protected float GetTrailCost(int[] trail) {
+    protected virtual float GetTrailCost(int[] trail) {
 
         float trailCost = 0;
 

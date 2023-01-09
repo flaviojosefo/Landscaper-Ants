@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -48,6 +49,9 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
         // Best trail -> Less climbing, more pheromones (in that order)
 
         base.GetBestTrail();
+
+        // Update Height Map
+        UpdateHeightMap();
     }
 
     protected override void DisplayBestTrail() {
@@ -75,18 +79,21 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
 
         // Update the iteration number on the display
         itersUI.text = $"{iter}";
-
-        // Update Height Map
-        UpdateHeightMap();
     }
 
+    // Update heightmap (futurely based on diffusion and evaporation)
     public void UpdateHeightMap() {
 
         // Get the nodes locations in texel coordinates
         Vector3[] nodes = FindTexelNodeLocations(bestTrail);
 
-        // 2D array to keep track of already encountered cells
-        bool[,] processedNeighbrs = new bool[texelSize, texelSize];
+        // Structure to place all cells found between all node paths
+        Queue<Vector2Int> cells = new();
+
+        // 1D array to keep track of already encountered cells
+        // This prevents "main" cells from being processed as neighbours
+        // It also keeps track of similar neighbours of different "main" cells
+        bool[] processedCells = new bool[texelSize * texelSize];
 
         // Loop through the nodes' locations
         for (int i = 0; i < nodes.Length - 1; i++) {
@@ -94,38 +101,58 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
             // Get a line of cells in the heightmap between 2 nodes
             BresenhamLine(nodes[i], nodes[i + 1], (x, y) => {
 
-                // Increase the current cell's height
-                heights[y, x] += heightIncr;            // PREVENT THIS FROM INCREASING MORE THAN NEIGHBOURING CELLS!
+                // THIS CODE PROCESSES EACH "MAIN" CELL 
+                // FOUND BETWEEN THE 2 NODES (INCLUSIVE)
 
-                // Search for all neighbouring cells (Moore neighbourhood)
-                for (int dx = -r; dx <= r; dx++) {
+                // Place the found cell into the queue
+                cells.Enqueue(new(x, y));
 
-                    for (int dy = -r; dy <= r; dy++) {
+                // Increase the cell's height
+                heights[y, x] += heightIncr;
 
-                        // Get neighbour coordinates
-                        int nx = x + dx,
-                            ny = y + dy;
-
-                        // Skip neighbour if coordinates are out of available 2D space
-                        if (nx < 0 || ny < 0 || nx >= texelSize || ny >= texelSize)
-                            continue;
-
-                        // Check if Manhattan distance is within range
-                        if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
-                            continue;
-
-                        // Skip if neighbour was already processed
-                        if (processedNeighbrs[ny, nx])
-                            continue;
-
-                        // Increase the neighbouring cell's height
-                        heights[ny, nx] += heightIncr;
-
-                        // Mark the neighbour as processed
-                        processedNeighbrs[ny, nx] = true;
-                    }
-                }
+                // Mark the cell as processed
+                processedCells[y + x * texelSize] = true;
             });
+        }
+
+        // Loop through all found cells
+        while (cells.Count > 0) {
+
+            // Extract the cell from the queue
+            Vector2Int cell = cells.Dequeue();
+
+            // Search for all neighbouring cells (Moore neighbourhood)
+            for (int dx = -r; dx <= r; dx++) {
+
+                for (int dy = -r; dy <= r; dy++) {
+
+                    // Skip the cell if the coordinates match the extracted cell
+                    if (dx == 0 && dy == 0)
+                        continue;
+
+                    // Get neighbour coordinates
+                    int nx = cell.x + dx,
+                        ny = cell.y + dy;
+
+                    // Skip neighbour if coordinates are outside of the available 2D space
+                    if (nx < 0 || ny < 0 || nx >= texelSize || ny >= texelSize)
+                        continue;
+
+                    // Check if Manhattan distance is within range
+                    if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
+                        continue;
+
+                    // Skip if neighbour was already processed
+                    if (processedCells[ny + nx * texelSize])
+                        continue;
+
+                    // Increase the neighbouring cell's height
+                    heights[ny, nx] += heightIncr;
+
+                    // Mark the neighbour as processed
+                    processedCells[ny + nx * texelSize] = true;
+                }
+            }
         }
 
         // Apply the new heightmap on the terrain

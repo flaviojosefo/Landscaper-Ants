@@ -51782,7 +51782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   randomStart: 1
-  maxIterations: 100
+  maxIterations: 300
   nAnts: 4
   alpha: 1
   beta: 1

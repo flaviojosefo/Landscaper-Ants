@@ -10,9 +10,14 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
     [SerializeField] private Terrain terrain;
     [SerializeField] private TMP_Text itersUI;
     [SerializeField] private LineRenderer trailLine; // For testing, remove when unnecessary
+    [SerializeField] private RectTransform phMatrix;
+
+    [SerializeField, Range(1, 100)] private int r = 50;
+    [SerializeField] private float heightIncr = 0.0001f;
 
     private float[,] heights;
 
+    // Called whenever a new graph e created
     public override void GenerateGraph() {
 
         // Return if the algorithm is executing
@@ -20,6 +25,10 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
             return;
 
         trailLine.positionCount = 0;
+
+        terrain.terrainData.heightmapResolution = texelSize;
+
+        heights = new float[texelSize, texelSize];
 
         base.GenerateGraph();
     }
@@ -62,8 +71,66 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
         print(best);
     }
 
-    protected override void DisplayIterations(int iter) =>
-            itersUI.text = $"{iter}";
+    protected override void DisplayIterations(int iter) {
+
+        // Update the iteration number on the display
+        itersUI.text = $"{iter}";
+
+        // Update Height Map
+        UpdateHeightMap();
+    }
+
+    public void UpdateHeightMap() {
+
+        // Get the nodes locations in texel coordinates
+        Vector3[] nodes = FindTexelNodeLocations(bestTrail);
+
+        // 2D array to keep track of already encountered cells
+        bool[,] processedNeighbrs = new bool[texelSize, texelSize];
+
+        // Loop through the nodes' locations
+        for (int i = 0; i < nodes.Length - 1; i++) {
+
+            // Get a line of cells in the heightmap between 2 nodes
+            BresenhamLine(nodes[i], nodes[i + 1], (x, y) => {
+
+                // Increase the current cell's height
+                heights[y, x] += heightIncr;            // PREVENT THIS FROM INCREASING MORE THAN NEIGHBOURING CELLS!
+
+                // Search for all neighbouring cells (Moore neighbourhood)
+                for (int dx = -r; dx <= r; dx++) {
+
+                    for (int dy = -r; dy <= r; dy++) {
+
+                        // Get neighbour coordinates
+                        int nx = x + dx,
+                            ny = y + dy;
+
+                        // Skip neighbour if coordinates are out of available 2D space
+                        if (nx < 0 || ny < 0 || nx >= texelSize || ny >= texelSize)
+                            continue;
+
+                        // Check if Manhattan distance is within range
+                        if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
+                            continue;
+
+                        // Skip if neighbour was already processed
+                        if (processedNeighbrs[ny, nx])
+                            continue;
+
+                        // Increase the neighbouring cell's height
+                        heights[ny, nx] += heightIncr;
+
+                        // Mark the neighbour as processed
+                        processedNeighbrs[ny, nx] = true;
+                    }
+                }
+            });
+        }
+
+        // Apply the new heightmap on the terrain
+        terrain.terrainData.SetHeights(0, 0, heights);
+    }
 
     public void FindTexelNodesPath() {
 
@@ -79,6 +146,19 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
         }
 
         terrain.terrainData.SetHeights(0, 0, heights);
+    }
+
+    private Vector3[] FindTexelNodeLocations(int[] trail) {
+
+        Vector3[] texelNodes = new Vector3[trail.Length];
+
+        for (int i = 0; i < texelNodes.Length; i++) {
+
+            Vector3 texelPos = VectorToTexel(graph.Nodes[trail[i]]);
+            texelNodes[i] = texelPos;
+        }
+
+        return texelNodes;
     }
 
     private Vector3[] FindTexelNodeLocations() {
@@ -117,6 +197,42 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
 
         // x and y are swapped in texel coordinates
         heights[(int)v.y, (int)v.x] = 1;
+    }
+
+    private void BresenhamLine(Vector3 from, Vector3 to, Action<int, int> action) {
+
+        int x0 = (int)from.x,
+            x1 = (int)to.x;
+
+        int y0 = (int)from.y,
+            y1 = (int)to.y;
+
+        int dx = Math.Abs(x1 - x0);
+        int dy = Math.Abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true) {
+
+            // Call the lambda expression with the current point
+            action(x0, y0);
+
+            if (x0 == x1 && y0 == y1)
+                break;
+
+            int e2 = 2 * err;
+
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
     }
 
     #region Bresenham's Line Algorithm

@@ -138,12 +138,12 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
                     if (nx < 0 || ny < 0 || nx >= texelSize || ny >= texelSize)
                         continue;
 
-                    // Check if Manhattan distance is within range
-                    if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
-                        continue;
-
                     // Skip if neighbour was already processed
                     if (processedCells[ny + nx * texelSize])
+                        continue;
+
+                    // Check if Manhattan distance is within range
+                    if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
                         continue;
 
                     // Increase the neighbouring cell's height

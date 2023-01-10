@@ -11,14 +11,15 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
     [SerializeField] private Terrain terrain;
     [SerializeField] private TMP_Text itersUI;
     [SerializeField] private LineRenderer trailLine; // For testing, remove when unnecessary
-    [SerializeField] private RectTransform phMatrix;
+    [SerializeField] private RectTransform phMatrix; // For testing, remove when unnecessary
 
-    [SerializeField, Range(1, 100)] private int r = 50;
-    [SerializeField] private float heightIncr = 0.0001f;
+    [SerializeField, Range(1, 100)] private int r = 50;               // The Moore neighbourdhood coefficient
+    [SerializeField] private float heightIncr = 0.0001f;              // -> THIS SHOULD BE REPLACED BY PHEROMONE INFLUENCE
+    [SerializeField, Range(.1f, 10f)] private float sigmaBlur = 1.0f; // The amount of blur to be applied on the heightmap
 
-    private float[,] heights;
+    private float[,] heights;  // The heightmap to be applied on the terrain
 
-    // Called whenever a new graph e created
+    // Called whenever a new graph is created
     public override void GenerateGraph() {
 
         // Return if the algorithm is executing
@@ -27,9 +28,7 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
 
         trailLine.positionCount = 0;
 
-        terrain.terrainData.heightmapResolution = texelSize;
-
-        heights = new float[texelSize, texelSize];
+        FlattenHeightmap();
 
         base.GenerateGraph();
     }
@@ -84,73 +83,77 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
     // Update heightmap (futurely based on diffusion and evaporation)
     public void UpdateHeightMap() {
 
-        // Get the nodes locations in texel coordinates
-        Vector3[] nodes = FindTexelNodeLocations(bestTrail);
+        // Loop through all ants
+        for (int i = 0; i < ants.Length; i++) {
 
-        // Structure to place all cells found between all node paths
-        Queue<Vector2Int> cells = new();
+            // Get the nodes locations in texel coordinates
+            Vector3[] nodes = FindTexelNodeLocations(ants[i].Trail);
 
-        // 1D array to keep track of already encountered cells
-        // This prevents "main" cells from being processed as neighbours
-        // It also keeps track of similar neighbours of different "main" cells
-        bool[] processedCells = new bool[texelSize * texelSize];
+            // Structure to place all cells found between all node paths
+            Queue<Vector2Int> cells = new();
 
-        // Loop through the nodes' locations
-        for (int i = 0; i < nodes.Length - 1; i++) {
+            // 1D array to keep track of already encountered cells
+            // This prevents "main" cells from being processed as neighbours
+            // It also keeps track of similar neighbours of different "main" cells
+            bool[] processedCells = new bool[texelSize * texelSize];
 
-            // Get a line of cells in the heightmap between 2 nodes
-            BresenhamLine(nodes[i], nodes[i + 1], (x, y) => {
+            // Loop through the nodes' locations
+            for (int j = 0; j < nodes.Length - 1; j++) {
 
-                // THIS CODE PROCESSES EACH "MAIN" CELL 
-                // FOUND BETWEEN THE 2 NODES (INCLUSIVE)
+                // Get a line of cells in the heightmap between 2 nodes
+                BresenhamLine(nodes[j], nodes[j + 1], (x, y) => {
 
-                // Place the found cell into the queue
-                cells.Enqueue(new(x, y));
+                    // THIS CODE PROCESSES EACH "MAIN" CELL 
+                    // FOUND BETWEEN THE 2 NODES (INCLUSIVE)
 
-                // Increase the cell's height
-                heights[y, x] += heightIncr;
+                    // Place the found cell into the queue
+                    cells.Enqueue(new(x, y));
 
-                // Mark the cell as processed
-                processedCells[y + x * texelSize] = true;
-            });
-        }
+                    // Decrease the cell's height
+                    heights[y, x] -= heightIncr;
 
-        // Loop through all found cells
-        while (cells.Count > 0) {
+                    // Mark the cell as processed
+                    processedCells[y + x * texelSize] = true;
+                });
+            }
 
-            // Extract the cell from the queue
-            Vector2Int cell = cells.Dequeue();
+            // Loop through all found cells
+            while (cells.Count > 0) {
 
-            // Search for all neighbouring cells (Moore neighbourhood)
-            for (int dx = -r; dx <= r; dx++) {
+                // Extract the cell from the queue
+                Vector2Int cell = cells.Dequeue();
 
-                for (int dy = -r; dy <= r; dy++) {
+                // Search for all neighbouring cells (Moore neighbourhood)
+                for (int dx = -r; dx <= r; dx++) {
 
-                    // Skip the cell if the coordinates match the extracted cell
-                    if (dx == 0 && dy == 0)
-                        continue;
+                    for (int dy = -r; dy <= r; dy++) {
 
-                    // Get neighbour coordinates
-                    int nx = cell.x + dx,
-                        ny = cell.y + dy;
+                        // Skip the cell if the coordinates match the extracted cell
+                        if (dx == 0 && dy == 0)
+                            continue;
 
-                    // Skip neighbour if coordinates are outside of the available 2D space
-                    if (nx < 0 || ny < 0 || nx >= texelSize || ny >= texelSize)
-                        continue;
+                        // Get neighbour coordinates
+                        int nx = cell.x + dx,
+                            ny = cell.y + dy;
 
-                    // Skip if neighbour was already processed
-                    if (processedCells[ny + nx * texelSize])
-                        continue;
+                        // Skip neighbour if coordinates are outside of the available 2D space
+                        if (nx < 0 || ny < 0 || nx >= texelSize || ny >= texelSize)
+                            continue;
 
-                    // Check if Manhattan distance is within range
-                    if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
-                        continue;
+                        // Skip if neighbour was already processed
+                        if (processedCells[ny + nx * texelSize])
+                            continue;
 
-                    // Increase the neighbouring cell's height
-                    heights[ny, nx] += heightIncr;
+                        // Check if Manhattan distance is within range
+                        if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
+                            continue;
 
-                    // Mark the neighbour as processed
-                    processedCells[ny + nx * texelSize] = true;
+                        // Decrease the neighbouring cell's height
+                        heights[ny, nx] -= heightIncr;
+
+                        // Mark the neighbour as processed
+                        processedCells[ny + nx * texelSize] = true;
+                    }
                 }
             }
         }
@@ -159,20 +162,123 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
         terrain.terrainData.SetHeights(0, 0, heights);
     }
 
-    public void FindTexelNodesPath() {
+    // Resets the heightmap
+    public void FlattenHeightmap() {
 
+        // Apply the heightmap resolution on the terrain
         terrain.terrainData.heightmapResolution = texelSize;
 
+        // Create the heightmap
         heights = new float[texelSize, texelSize];
 
-        Vector3[] nodes = FindTexelNodeLocations();
+        // Loop through all heightmap locations
+        for (int i = 0; i < texelSize; i++) {
 
-        for (int i = 0; i < nodes.Length - 1; i++) {
+            for (int j = 0; j < texelSize; j++) {
 
-            PlotLine(nodes[i], nodes[i + 1]);
+                heights[i, j] = 1.0f;
+            }
         }
 
+        // Apply the flattened heightmap on the terrain
         terrain.terrainData.SetHeights(0, 0, heights);
+    }
+
+    // Applies a gaussian blur to the heightmap
+    public void BlurHeightmap() {
+
+        // Return if ACO is running
+        if (aco is not null)
+            return;
+
+        // Create a blurred version of the regular heightmap
+        float[,] blurHeights = GaussianBlur(heights, sigmaBlur);
+
+        // Apply the blurred heightmap on the terrain
+        terrain.terrainData.SetHeights(0, 0, blurHeights);
+    }
+
+    // Resets the heightmap to original values
+    public void DeblurHeightmap() {
+
+        // Return if ACO is running
+        if (aco is not null)
+            return;
+
+        // Apply the regular heightmap on the terrain
+        terrain.terrainData.SetHeights(0, 0, heights);
+    }
+
+    // Applies a Gaussian Blur to a 2D grid
+    private float[,] GaussianBlur(float[,] input, float sigma) {
+
+        // Create the output map
+        float[,] output = new float[texelSize, texelSize];
+
+        // Create the kernel for the blur
+        int kernelSize = (int)(sigma * 3);
+        float[,] kernel = new float[kernelSize, kernelSize];
+        float kernelSum = 0;
+
+        // Loop through the kernel
+        for (int x = 0; x < kernelSize; x++) {
+
+            for (int y = 0; y < kernelSize; y++) {
+
+                // Calculate the kernel weight based on
+                // the standard deviation of the blur
+                float xDistance = x - kernelSize / 2;
+                float yDistance = y - kernelSize / 2;
+                float weight = (float)(Math.Exp(-(xDistance * xDistance + yDistance * yDistance) / (2 * sigma * sigma)) / (2 * Math.PI * sigma * sigma));
+                kernel[x, y] = weight;
+                kernelSum += weight;
+            }
+        }
+
+        // Loop through the kernel
+        for (int x = 0; x < kernelSize; x++) {
+
+            for (int y = 0; y < kernelSize; y++) {
+
+                // Normalize the kernel
+                kernel[x, y] /= kernelSum;
+            }
+        }
+
+        // Apply the blur to the input map
+        for (int x = 0; x < texelSize; x++) {
+
+            for (int y = 0; y < texelSize; y++) {
+
+                // The sum for this pixel
+                float sum = 0;
+
+                // Loop through the kernel
+                for (int kX = 0; kX < kernelSize; kX++) {
+
+                    for (int kY = 0; kY < kernelSize; kY++) {
+
+                        // Calculate the input heightmap's coordinates
+                        int sampleX = x + kX - kernelSize / 2;
+                        int sampleY = y + kY - kernelSize / 2;
+
+                        // Check if the coordinates are within range
+                        if (sampleX >= 0 && sampleX < texelSize && sampleY >= 0 && sampleY < texelSize) {
+
+                            // Multiply the input value by the kernel's weight
+                            // and add it to the sum
+                            sum += input[sampleX, sampleY] * kernel[kX, kY];
+                        }
+                    }
+                }
+
+                // Apply the sum to the output
+                output[x, y] = sum;
+            }
+        }
+
+        // Return the output heightmap
+        return output;
     }
 
     private Vector3[] FindTexelNodeLocations(int[] trail) {
@@ -183,22 +289,6 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
 
             Vector3 texelPos = VectorToTexel(graph.Nodes[trail[i]]);
             texelNodes[i] = texelPos;
-        }
-
-        return texelNodes;
-    }
-
-    private Vector3[] FindTexelNodeLocations() {
-
-        Vector3[] texelNodes = new Vector3[graph.Nodes.Length];
-
-        for (int i = 0; i < texelNodes.Length; i++) {
-
-            Vector3 texelPos = VectorToTexel(graph.Nodes[i]);
-            texelNodes[i] = texelPos;
-
-            // x and y are swapped in texel coordinates
-            //heights[(int)texelPos.y, (int)texelPos.x] = texelPos.z;
         }
 
         return texelNodes;
@@ -218,12 +308,6 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
         //print($"Vector: {v} | Texel: {texelPos}");
 
         return texelPos;
-    }
-
-    private void PlotPoint(Vector3 v) {
-
-        // x and y are swapped in texel coordinates
-        heights[(int)v.y, (int)v.x] = 1;
     }
 
     private void BresenhamLine(Vector3 from, Vector3 to, Action<int, int> action) {
@@ -262,97 +346,9 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
         }
     }
 
-    #region Bresenham's Line Algorithm
+    private void OnApplicationQuit() {
 
-    public void PlotLine(Vector3 from, Vector3 to) {
-
-        if (Math.Abs((int)to.y - (int)from.y) < Math.Abs((int)to.x - (int)from.x)) {
-
-            if ((int)from.x > (int)to.x) {
-
-                PlotLineLow(to, from);
-
-            } else {
-
-                PlotLineLow(from, to);
-            }
-
-        } else {
-
-            if ((int)from.y > (int)to.y) {
-
-                PlotLineHigh(to, from);
-
-            } else {
-
-                PlotLineHigh(from, to);
-            }
-        }
+        // Flatten the heightmap when quitting app
+        FlattenHeightmap();
     }
-
-    private void PlotLineLow(Vector3 from, Vector3 to) {
-
-        int dx = (int)to.x - (int)from.x;
-        int dy = (int)to.y - (int)from.y;
-
-        int yi = 1;
-
-        if (dy < 0) {
-
-            yi = -1;
-            dy = -dy;
-        }
-
-        int D = (2 * dy) - dx;
-        int y = (int)from.y;
-
-        for (int i = (int)from.x; i <= (int)to.x; i++) {
-
-            PlotPoint(new Vector3(i, y));
-
-            if (D > 0) {
-
-                y += yi;
-                D += 2 * (dy - dx);
-
-            } else {
-
-                D += 2 * dy;
-            }
-        }
-    }
-
-    private void PlotLineHigh(Vector3 from, Vector3 to) {
-
-        int dx = (int)to.x - (int)from.x;
-        int dy = (int)to.y - (int)from.y;
-
-        int xi = 1;
-
-        if (dx < 0) {
-
-            xi = -1;
-            dx = -dx;
-        }
-
-        int D = (2 * dx) - dy;
-        int x = (int)from.x;
-
-        for (int i = (int)from.y; i < (int)to.y; i++) {
-
-            PlotPoint(new Vector3(x, i));
-
-            if (D > 0) {
-
-                x += xi;
-                D += 2 * (dx - dy);
-
-            } else {
-
-                D += 2 * dx;
-            }
-        }
-    }
-
-    #endregion
 }

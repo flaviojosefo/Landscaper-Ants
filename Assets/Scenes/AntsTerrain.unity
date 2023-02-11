@@ -51229,7 +51229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   randomStart: 1
-  maxIterations: 200
+  maxIterations: 350
   nAnts: 4
   alpha: 1
   beta: 1

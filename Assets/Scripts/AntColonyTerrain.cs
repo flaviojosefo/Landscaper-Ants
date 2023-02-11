@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public sealed class AntColonyTerrain : AntColonyOptimization {
 
@@ -89,11 +91,11 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
         // Check wether or not to use only the best performing Ant
         if (oneAnt) {
 
-            // Get the Ant with the best trail (based on distance)
-            Ant bestAnt = ants.OrderBy(a => a.TrailCost).First();
+            // Select an ant to dig a path
+            Ant ant = SelectAnt();
 
             // Get the nodes locations in texel coordinates
-            Vector3[] nodes = FindTexelNodeLocations(bestAnt.Trail);
+            Vector3[] nodes = FindTexelNodeLocations(ant.Trail);
 
             ProcessTexels(nodes);
 
@@ -111,6 +113,56 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
 
         // Apply the new heightmap on the terrain
         terrain.terrainData.SetHeights(0, 0, heights);
+    }
+
+    // Choose an ant based on the inverse of the trail cost
+    // Smaller trails = Bigger probabilities
+    private Ant SelectAnt() {
+
+        // Calculate denominator sum
+        float sum = 0;
+
+        for (int i = 0; i < ants.Length; i++) {
+
+            sum += 1 / ants[i].TrailCost;
+        }
+
+        // Create a tuple containing an ant's index and probability of being chosen
+        (int antIndex, float percentage)[] probs = new (int, float)[ants.Length];
+
+        // Calculate each of the path's percentage
+        for (int i = 0; i < ants.Length; i++) {
+
+            probs[i] = (i, (1 / ants[i].TrailCost) / sum);
+        }
+
+        // Reorganize the tuple based on ascending percentage
+        probs = probs.OrderBy(x => x.percentage).ToArray();
+
+        // ##### ROULETTE WHEEL #####
+
+        // Calculate cumulative sum
+        float[] cuSum = new float[probs.Length + 1];
+
+        for (int i = 0; i < probs.Length; i++) {
+
+            cuSum[i + 1] = cuSum[i] + probs[i].percentage;
+        }
+
+        // Get random value between 0 and 1 (both inclusive)
+        float rnd = Random.value;
+
+        for (int i = 0; i < cuSum.Length - 1; i++) {
+
+            if ((rnd >= cuSum[i]) && (rnd < cuSum[i + 1])) {
+
+                return ants[probs[i].antIndex];
+            }
+        }
+
+        // If the cumulative sum goes above 1 (due to float errors)
+        // return the best performing ant
+        return ants.OrderBy(a => a.TrailCost).First();
     }
 
     private void ProcessTexels(Vector3[] nodes) {

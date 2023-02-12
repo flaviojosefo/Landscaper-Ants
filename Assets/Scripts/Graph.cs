@@ -26,7 +26,8 @@ public sealed class Graph {
     private float[,] costMatrix;      // The cost between all nodes
     private float[,] pheromoneMatrix; // The pheromones values on all edges
 
-    private int highlighted;          // The colored node (always starts at 0)
+    private int startHighlight;              // The highlighted start node (begins at 0)
+    private int endHighlight;                // The highlighted end node (begins at nodesAmount - 1)
 
     public float BaseDim => baseDim;
 
@@ -113,12 +114,20 @@ public sealed class Graph {
         return neighbours.ToArray();
     }
 
-    // Updates the highlighted node (should always be the first one on the sequence)
-    public void UpdateHighlightedNode(int newHighlighted) {
+    // Updates the highlight on the start node
+    public void UpdateStartHighlight(int newStart) {
 
-        nodesSpawn.GetChild(highlighted).GetComponent<SpriteRenderer>().color = Color.white;
-        highlighted = newHighlighted;
-        nodesSpawn.GetChild(highlighted).GetComponent<SpriteRenderer>().color = Color.blue;
+        nodesSpawn.GetChild(startHighlight).GetComponent<SpriteRenderer>().color = Color.white;
+        startHighlight = newStart;
+        nodesSpawn.GetChild(startHighlight).GetComponent<SpriteRenderer>().color = Color.blue;
+    }
+
+    // Updates the highlight on the end node
+    public void UpdateEndHighlight(int newEnd) {
+
+        nodesSpawn.GetChild(endHighlight).GetComponent<SpriteRenderer>().color = Color.white;
+        endHighlight = newEnd;
+        nodesSpawn.GetChild(endHighlight).GetComponent<SpriteRenderer>().color = Color.red;
     }
 
     // Displays both the nodes of the graph
@@ -138,18 +147,26 @@ public sealed class Graph {
         Vector3 nodeSpriteScale = new(nodeRadius, nodeRadius, nodeRadius);
 
         // Instantiate the first one with a different color
-        highlighted = 0;
+        startHighlight = 0;
         Vector3 firstPosOffset = new(nodes[0].x, nodes[0].y + 0.01f, nodes[0].z); // Draw on top of line
         Transform first = Object.Instantiate(nodeSprite, firstPosOffset, nodeSprite.transform.rotation, nodesSpawn).transform;
         first.localScale = nodeSpriteScale;
         first.GetComponent<SpriteRenderer>().color = Color.blue;
 
         // Instantiate all other nodes
-        for (int i = 1; i < nodes.Length; i++) {
+        for (int i = 1; i < nodes.Length - 1; i++) {
 
             Vector3 nodePosOffset = new(nodes[i].x, nodes[i].y + 0.01f, nodes[i].z);
             Object.Instantiate(nodeSprite, nodePosOffset, nodeSprite.transform.rotation, nodesSpawn).transform.localScale = nodeSpriteScale;
         }
+
+        // Instantiate the last one with a different color
+        int lastIndex = nodes.Length - 1;
+        endHighlight = lastIndex;
+        Vector3 lastPosOffset = new(nodes[lastIndex].x, nodes[lastIndex].y + 0.01f, nodes[lastIndex].z); // Draw on top of line
+        Transform last = Object.Instantiate(nodeSprite, lastPosOffset, nodeSprite.transform.rotation, nodesSpawn).transform;
+        last.localScale = nodeSpriteScale;
+        last.GetComponent<SpriteRenderer>().color = Color.red;
     }
 
     // Displays the limits of the graph

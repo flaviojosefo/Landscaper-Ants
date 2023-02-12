@@ -45,8 +45,9 @@ public sealed class AntColonyNodes : AntColonyOptimization {
             trailLine.SetPosition(i, graph.Nodes[bestTrail[i]]);
         }
 
-        // Update the highlighted node
-        graph.UpdateHighlightedNode(bestTrail[0]);
+        // Update the highlighted nodes
+        graph.UpdateStartHighlight(bestTrail[0]);
+        graph.UpdateEndHighlight(bestTrail[^1]);
 
         // Print a message on the console displaying the best trail and its cost
         best += $" | Cost: {GetTrailCost(bestTrail)}";

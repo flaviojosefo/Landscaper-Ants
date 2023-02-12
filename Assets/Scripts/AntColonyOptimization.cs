@@ -8,7 +8,8 @@ using Random = UnityEngine.Random;
 public abstract class AntColonyOptimization : MonoBehaviour {
 
     [Header("ACO Settings")]
-    [SerializeField] protected bool randomStart = false;
+    [SerializeField] protected bool randomStart = true;
+    [SerializeField] protected bool randomEnd = true;
     [SerializeField, Range(1, 10000)] protected int maxIterations = 1000;
     [SerializeField, Range(1, 10)] protected int nAnts = 2;
     [SerializeField, Range(0, 10)] protected int alpha = 1;
@@ -75,8 +76,9 @@ public abstract class AntColonyOptimization : MonoBehaviour {
         for (int i = 0; i < ants.Length; i++) {
 
             int start = randomStart ? Random.Range(0, graph.Nodes.Length) : 0;
+            int? end = randomEnd ? null : graph.Nodes.Length - 1;
 
-            ants[i].Trail = BuildTrail(start);
+            ants[i].Trail = BuildTrail(start, end);
             ants[i].TrailCost = GetTrailCost(ants[i].Trail);
 
             //string t = "Trail: ";
@@ -113,9 +115,10 @@ public abstract class AntColonyOptimization : MonoBehaviour {
     }
 
     // Builds a trail, travelling through all connected nodes
-    private int[] BuildTrail(int start) {
+    private int[] BuildTrail(int start, int? end) {
 
         int nodesAmount = graph.Nodes.Length;
+        int nodesLoop = nodesAmount - 1;
 
         int[] trail = new int[nodesAmount];
         bool[] visitedNodes = new bool[nodesAmount];
@@ -123,7 +126,13 @@ public abstract class AntColonyOptimization : MonoBehaviour {
         trail[0] = start;
         visitedNodes[start] = true;
 
-        for (int i = 0; i < nodesAmount - 1; i++) {
+        if (end is not null) {
+            trail[nodesAmount - 1] = (int)end;
+            visitedNodes[(int)end] = true;
+            nodesLoop--;
+        }
+
+        for (int i = 0; i < nodesLoop; i++) {
 
             int currNode = trail[i];
             //print("Current Node: " + currNode);

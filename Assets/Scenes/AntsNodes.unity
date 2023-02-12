@@ -1211,7 +1211,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8216d63eb346bd41a165ec09f3a8f21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  randomStart: 1
+  randomStart: 0
+  randomEnd: 0
   maxIterations: 1000
   nAnts: 3
   alpha: 1

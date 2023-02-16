@@ -51228,9 +51228,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b445fc0c53f8aea44b8e461599071ce9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  randomStart: 0
+  randomStart: 1
   randomEnd: 0
   parallelAnts: 1
+  shuffleAnts: 0
   maxIterations: 500
   nAnts: 4
   alpha: 1

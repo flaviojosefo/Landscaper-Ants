@@ -12,6 +12,7 @@ public abstract class AntColonyOptimization : MonoBehaviour {
     [SerializeField] protected bool randomStart = true;   // Should the Ants start on a random node?
     [SerializeField] protected bool randomEnd = true;     // Should the Ants finish on a random node?
     [SerializeField] protected bool parallelAnts = false; // Should the Ants walk "next to each other", or one after the other?
+    [SerializeField] protected bool shuffleAnts = false;  // Should the Ants be shuffled when iterated?
 
     [SerializeField, Range(1, 10000)] protected int maxIterations = 1000; // The number of iterations on the main algorithm loop
 
@@ -89,7 +90,8 @@ public abstract class AntColonyOptimization : MonoBehaviour {
     private void UpdateAntsParallel() {
 
         // Shuffle the ants to remove the first ant's influence
-        ants.Shuffle();
+        if (shuffleAnts)
+            ants.Shuffle();
 
         // Save amount of ants and nodes (for multiple use)
         int antsAmount = ants.Length;
@@ -185,7 +187,8 @@ public abstract class AntColonyOptimization : MonoBehaviour {
     private void UpdateAnts() {
 
         // Shuffle the ants to remove the first ant's influence
-        ants.Shuffle();
+        if (shuffleAnts)
+            ants.Shuffle();
 
         for (int i = 0; i < ants.Length; i++) {
 

@@ -8,22 +8,26 @@ using Random = UnityEngine.Random;
 public abstract class AntColonyOptimization : MonoBehaviour {
 
     [Header("ACO Settings")]
-    [SerializeField] protected bool randomStart = true;
-    [SerializeField] protected bool randomEnd = true;
-    [SerializeField] protected bool parallelAnts = false;
-    [SerializeField, Range(1, 10000)] protected int maxIterations = 1000;
-    [SerializeField, Range(1, 10)] protected int nAnts = 2;
-    [SerializeField, Range(0, 10)] protected int alpha = 1;
-    [SerializeField, Range(1, 10)] protected int beta = 1;
-    [SerializeField, Range(0f, 1f)] protected float rho = 0.01f;
-    [SerializeField, Range(1, 5)] protected int Q = 1;
+    [SerializeField] protected bool randomStart = true;   // Should the Ants start on a random node?
+    [SerializeField] protected bool randomEnd = true;     // Should the Ants finish on a random node?
+    [SerializeField] protected bool parallelAnts = false; // Should the Ants walk "next to each other", or one after the other?
 
-    [SerializeField, Space] protected Graph graph;
+    [SerializeField, Range(1, 10000)] protected int maxIterations = 1000; // The number of iterations on the main algorithm loop
 
-    protected Ant[] ants;
-    protected int[] bestTrail;
+    [SerializeField, Range(1, 10)] protected int nAnts = 2; // The amount of Ants
 
-    protected Coroutine aco;
+    [SerializeField, Range(0, 10)] protected int alpha = 1; // Pheromone influence factor (for pathfinding)
+    [SerializeField, Range(1, 10)] protected int beta = 1;  // Cost influence factor (for pathfinding)
+
+    [SerializeField, Range(0f, 1f)] protected float rho = 0.01f; // Pheromone evaporation coefficient
+    [SerializeField, Range(1, 5)] protected int Q = 1;           // Pheromone deposit coefficient
+
+    [SerializeField, Space] protected Graph graph; // The collection of nodes and respective cost and pheromone matrices
+
+    protected Ant[] ants;      // The Ants which will be pathtracing
+    protected int[] bestTrail; // A collection of indices of the nodes that compose the (current) best trail
+
+    protected Coroutine aco;  // The coroutine for the ACO main loop (1 iteration per frame)
 
     // Generate a graph on start
     protected void Start() => GenerateGraph();

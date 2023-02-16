@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Generator;
 using Random = UnityEngine.Random;
 
 public abstract class AntColonyOptimization : MonoBehaviour {
@@ -86,6 +87,9 @@ public abstract class AntColonyOptimization : MonoBehaviour {
 
     // Ants walk and update pheromone deposits consecutively
     private void UpdateAntsParallel() {
+
+        // Shuffle the ants to remove the first ant's influence
+        ants.Shuffle();
 
         // Save amount of ants and nodes (for multiple use)
         int antsAmount = ants.Length;
@@ -179,6 +183,9 @@ public abstract class AntColonyOptimization : MonoBehaviour {
 
     // Build all ants' trails and calculate their cost
     private void UpdateAnts() {
+
+        // Shuffle the ants to remove the first ant's influence
+        ants.Shuffle();
 
         for (int i = 0; i < ants.Length; i++) {
 

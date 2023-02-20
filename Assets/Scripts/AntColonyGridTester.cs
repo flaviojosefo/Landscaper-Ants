@@ -24,6 +24,8 @@ namespace LandscaperAnts {
         [SerializeField, Range(1, 100)] private int r = 50;                 // The Moore neighbourdhood coefficient
         [SerializeField] private float heightIncr = 0.0001f;                // -> THIS SHOULD BE REPLACED BY PHEROMONE INFLUENCE
 
+        [SerializeField, Range(0, 1)] private float maxSlope = 0.9f;        // The max slope an Ant can endure
+
         [SerializeField] private Terrain terrain;
 
         [SerializeField, Space] private Grid grid;                          // The collection of nodes and respective cost and pheromone matrices
@@ -131,7 +133,7 @@ namespace LandscaperAnts {
                 Vector2Int endPoint = grid.Nodes[i + 1];
 
                 // Loop for a big arbitrary number of times
-                // since we don't know how many point the Ant will visit
+                // since we don't know how many points the Ant will visit
                 for (int j = 0; j < grid.BaseDim * grid.BaseDim; j++) {
 
                     // Get the neighbours of the current point
@@ -160,7 +162,7 @@ namespace LandscaperAnts {
 
                     // Leave the for loop if the current point is the end point
                     if (currentPoint == endPoint)
-                        return;
+                        break;
                 }
             }
         }

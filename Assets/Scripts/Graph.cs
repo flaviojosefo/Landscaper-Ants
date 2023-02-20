@@ -26,8 +26,8 @@ public sealed class Graph {
     private float[,] costMatrix;      // The cost between all nodes
     private float[,] pheromoneMatrix; // The pheromones values on all edges
 
-    private int startHighlight;              // The highlighted start node (begins at 0)
-    private int endHighlight;                // The highlighted end node (begins at nodesAmount - 1)
+    private int startHighlight;       // The highlighted start node (begins at 0)
+    private int endHighlight;         // The highlighted end node (begins at nodesAmount - 1)
 
     public float BaseDim => baseDim;
 

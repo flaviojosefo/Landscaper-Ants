@@ -137,7 +137,7 @@ namespace LandscaperAnts {
                 for (int j = 0; j < grid.BaseDim * grid.BaseDim; j++) {
 
                     // Get the neighbours of the current point
-                    Vector2Int[] neighbours = GetPointNeighbours(currentPoint);
+                    Vector2Int[] neighbours = GetMooreNeighbours(currentPoint);
 
                     // Variable to save the best distance found between a neighbour and the end point
                     float bestDistance = float.MaxValue;
@@ -155,6 +155,7 @@ namespace LandscaperAnts {
                             currentPoint = neighbours[k];
                             bestDistance = neighbourEndDistance;
                         }
+
                     }
 
                     // Decrement a manual value from the heightmap at the best neighbour
@@ -168,7 +169,7 @@ namespace LandscaperAnts {
         }
 
         // Search for a point's neighbours using Moore's neighbourhood algorithm
-        private Vector2Int[] GetPointNeighbours(Vector2Int p) {
+        private Vector2Int[] GetMooreNeighbours(Vector2Int p) {
 
             // The list of neighbours to find
             List<Vector2Int> neighbours = new();
@@ -188,10 +189,6 @@ namespace LandscaperAnts {
 
                     // Skip neighbour if coordinates are outside of the available 2D space
                     if (nx < 0 || ny < 0 || nx >= grid.BaseDim || ny >= grid.BaseDim)
-                        continue;
-
-                    // Check if Manhattan distance is within range
-                    if (Mathf.Abs(dx) + Mathf.Abs(dy) > r)
                         continue;
 
                     // If previous conditions fail, add the point to the list

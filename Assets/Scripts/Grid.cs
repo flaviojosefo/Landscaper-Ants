@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -29,7 +28,7 @@ namespace LandscaperAnts {
         private float[,] heights;    // The height values on all elements of the grid
         private float[,] pheromones; // The pheromones values on all elements of the grid
 
-        public float BaseDim => baseDim;
+        public int BaseDim => baseDim;
 
         public Vector2Int[] Nodes => nodes;
         public float[,] Heights => heights;

@@ -61,7 +61,7 @@ public sealed class AntColonyTerrain : AntColonyOptimization {
 
         // Define the number of points the line will have
         trailLine.positionCount = bestTrail.Length;
-        string best = "NEW Best Trial: ";
+        string best = "NEW Best Trail: ";
 
         // Add each node's position to each available position on the line
         for (int i = 0; i < bestTrail.Length; i++) {

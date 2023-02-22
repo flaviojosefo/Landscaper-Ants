@@ -2,21 +2,19 @@ using UnityEngine;
 
 public class TestAnt {
 
-    private Vector2Int startCell;
+    public bool HasFood { get; set; }
 
-    private Vector2Int currentCell;
+    public Vector2Int StartCell { get; set; }
 
-    public Vector2Int StartCell { get => startCell; set => startCell = value; }
-
-    public Vector2Int CurrentCell { get => currentCell; set => currentCell = value; }
+    public Vector2Int CurrentCell { get; set; }
 
     public TestAnt(Vector2Int start) {
 
-        startCell = currentCell = start;
+        StartCell = CurrentCell = start;
     }
 
     public void PlaceAt(Vector2Int newStart) {
 
-        startCell = currentCell = newStart;
+        StartCell = CurrentCell = newStart;
     }
 }

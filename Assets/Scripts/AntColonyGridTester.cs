@@ -339,20 +339,12 @@ namespace LandscaperAnts {
                     // Check if the ant found a food source
                     if (FoundFood(neighbours)) {
 
-                        //// Start travelling back!
+                        // Start travelling back!
+                        // Remember: Printing in here severely slows the loop!
                         //print($"Ant {j} found some food!");
 
-                        //// Decrement a manual value from the heightmap at the select cell
-                        //grid.Heights[current.y, current.x] -= heightIncr;
-
-                        // Get the next cell based on height and pheromone levels
-                        Vector2Int next = GetNextPoint(current, neighbours);
-
                         // Decrement a manual value from the heightmap at the select cell
-                        grid.Heights[next.y, next.x] -= heightIncr;
-
-                        // Update the ant's current cell
-                        ants[j].CurrentCell = next;
+                        grid.Heights[current.y, current.x] -= heightIncr;
 
                     } else {
 

@@ -15,7 +15,6 @@ namespace LandscaperAnts {
         private int nodesAmount = 4;
 
         [SerializeField]
-        [Range(0, 25f)]
         [Tooltip("The dimensions of the grid")]
         private int baseDim = 513;
 

@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace LandscaperAnts {
@@ -38,6 +38,179 @@ namespace LandscaperAnts {
         private int[] bestTrail;                                            // A collection of indices of the nodes that compose the (current) best trail
 
         private Coroutine aco;                                              // The coroutine for the ACO main loop (1 iteration per frame)
+
+        private void Start() {
+
+            // ----- TEST PERCENTAGE SPREADING OF NEIGHBOURS -----
+
+            // Main Variables
+
+            Vector2Int origin = new(7, 4);      // The point the Ant is standing on
+            Vector2Int destination = new(2, 4); // The Ant's destination
+
+            float distanceGapInfluence = 3;     // The factor which increases the gap between distance percentages (Higher values == closer points have a higher percentage!)
+
+            float distanceInfluence = 1;        // The factor that increases distance influence in the overall percentage calculation
+            float pheromoneInfluence = 1;       // The factor that increases pheromone influence in the overall percentage calculation
+            float slopeInfluence = 1;           // The factor that increases slope influence in the overall percentage calculation
+
+            // ORDER OF IMPORTANCE: Slope --> Pheromones --> Distance (?)
+
+            // Generate a new grid
+            grid.Generate();
+
+            // Get the origin's neighbouring points
+            Vector2Int[] neighbours = GetMooreNeighbours(origin);
+
+            // The neighbours' heights
+            float[] nHeights = { 1f,  // F
+                                 1f,  // D
+                                 1f,  // A
+                                 1f,  // G
+                                 1f,  // B
+                                 1f,  // H
+                                 1f,  // E
+                                 1f   // C
+            };
+
+            // The neighbours' pheromone level
+            float[] nPheromones = { 0.01f,  // F
+                                    0.01f,  // D
+                                    0.01f,  // A
+                                    0.01f,  // G
+                                    0.01f,  // B
+                                    0.01f,  // H
+                                    0.01f,  // E
+                                    0.01f   // C
+            };
+
+            // Fill Pheromone and height levels at the neighbours to simulate a "realtime scenario"
+            for (int i = 0; i < neighbours.Length; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                grid.Pheromones[n.y, n.x] = nPheromones[i];
+                grid.Heights[n.y, n.x] = nHeights[i];
+            }
+
+            // Denominator Calculation
+
+            float denominator = 0;
+
+            for (int i = 0; i < neighbours.Length; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                float distance = Vector2Int.Distance(n, destination);
+
+                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+
+                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+
+                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
+
+                float slopePortion = heightDiff != 0 ? Mathf.Pow(Mathf.Abs(heightDiff), slopeInfluence) : 1;
+
+                denominator += /*distancePortion + pheromonePortion +*/ slopePortion;
+                
+            }
+
+            // Nominator Calculation
+
+            float totalPercentage = 0;
+
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighbours.Length];
+
+            for (int i = 0; i < neighbours.Length; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                float distance = Vector2Int.Distance(n, destination);
+
+                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+
+                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+
+                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
+
+                float slopePortion = heightDiff != 0 ? Mathf.Pow(Mathf.Abs(heightDiff), slopeInfluence) : 1;
+
+                float percentage = (/*distancePortion + pheromonePortion +*/ slopePortion) / denominator;
+
+                totalPercentage += percentage;
+
+                nPerctgs[i] = (i, percentage);
+
+                print($"{n} | Distance: {distance} | PH: {pheromonePortion} | Percentage: {percentage}");
+            }
+
+            nPerctgs = nPerctgs.OrderBy(n => n.percentage).ToArray();
+
+            print($"Total: {denominator} | Total Percentage: {totalPercentage}");
+        }
+
+        private Vector2Int GetNextPoint(Vector2Int origin, Vector2Int destination, Vector2Int[] neighbours) {
+
+            float distanceGapInfluence = 3;
+
+            float distanceInfluence = 1;
+            float pheromoneInfluence = 1;
+            float slopeInfluence = 1;
+
+            // Denominator Calculation
+
+            float denominator = 0;
+
+            for (int i = 0; i < neighbours.Length; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                float distance = Vector2Int.Distance(n, destination);
+
+                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+
+                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+
+                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
+
+                float slopePortion = heightDiff != 0 ? Mathf.Pow(1 / Mathf.Abs(heightDiff), slopeInfluence) : 0;
+
+                denominator += distancePortion + pheromonePortion + slopePortion;
+
+            }
+
+            // Nominator Calculation
+
+            float totalPercentage = 0;
+
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighbours.Length];
+
+            for (int i = 0; i < neighbours.Length; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                float distance = Vector2Int.Distance(n, destination);
+
+                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+
+                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+
+                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
+
+                float slopePortion = heightDiff != 0 ? Mathf.Pow(1 / Mathf.Abs(heightDiff), slopeInfluence) : 0;
+
+                float percentage = (distancePortion + pheromonePortion + slopePortion) / denominator;
+
+                totalPercentage += percentage;
+
+                nPerctgs[i] = (i, percentage);
+
+                print($"{n} | Distance: {distance} | PH: {pheromonePortion} | Percentage: {percentage}");
+            }
+
+            // For now, return the neighbour with the highest percentage
+            return neighbours[nPerctgs.OrderBy(n => n.percentage).Last().index];
+        }
 
         // Method to generate a new graph
         public void GenerateGraph() {
@@ -157,6 +330,8 @@ namespace LandscaperAnts {
                         }
 
                     }
+
+                    // currentPoint = GetNextPoint(currentPoint, endPoint, neighbours);
 
                     // Decrement a manual value from the heightmap at the best neighbour
                     grid.Heights[currentPoint.y, currentPoint.x] -= heightIncr;

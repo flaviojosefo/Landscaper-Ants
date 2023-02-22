@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
+using Generator;
+using TMPro;
+using Random = UnityEngine.Random;
 
 namespace LandscaperAnts {
 
@@ -11,9 +13,14 @@ namespace LandscaperAnts {
 
         [Header("ACO Settings")]
 
+        [SerializeField] private bool antsInPlace = true;                   // Should Ants be able to select the next cell as the one they're on?
+        [SerializeField] private bool shuffleAnts = false;  // Should the Ants be shuffled when iterated?
+
         [SerializeField, Range(1, 10000)] private int maxIterations = 1000; // The number of iterations on the main algorithm loop
 
-        [SerializeField, Range(1, 10)] private int nAnts = 2;               // The amount of Ants
+        [SerializeField, Range(1, 50)] private int nAnts = 2;               // The amount of Ants
+
+        [SerializeField, Range(1, 10000)] private float antSteps = 1;       // The number of steps an Ant can perform
 
         [SerializeField, Range(0, 10)] private int alpha = 1;               // Pheromone influence factor (for pathfinding)
         [SerializeField, Range(1, 10)] private int beta = 1;                // Cost influence factor (for pathfinding)
@@ -34,8 +41,7 @@ namespace LandscaperAnts {
 
         [SerializeField] private TMP_Text itersUI;
 
-        private Ant[] ants;                                                 // The Ants which will be pathtracing
-        private int[] bestTrail;                                            // A collection of indices of the nodes that compose the (current) best trail
+        private TestAnt[] ants;                                             // The Ants which will be pathtracing
 
         private Coroutine aco;                                              // The coroutine for the ACO main loop (1 iteration per frame)
 
@@ -48,9 +54,9 @@ namespace LandscaperAnts {
             Vector2Int origin = new(7, 4);      // The point the Ant is standing on
             Vector2Int destination = new(2, 4); // The Ant's destination
 
-            float distanceGapInfluence = 3;     // The factor which increases the gap between distance percentages (Higher values == closer points have a higher percentage!)
+            //float distanceGapInfluence = 3;     // The factor which increases the gap between distance percentages (Higher values == closer points have a higher percentage!)
 
-            float distanceInfluence = 1;        // The factor that increases distance influence in the overall percentage calculation
+            //float distanceInfluence = 1;        // The factor that increases distance influence in the overall percentage calculation
             float pheromoneInfluence = 1;       // The factor that increases pheromone influence in the overall percentage calculation
             float slopeInfluence = 1;           // The factor that increases slope influence in the overall percentage calculation
 
@@ -60,10 +66,11 @@ namespace LandscaperAnts {
             grid.Generate();
 
             // Get the origin's neighbouring points
-            Vector2Int[] neighbours = GetMooreNeighbours(origin);
+            Vector2Int[] neighbours = GetMooreNeighbours(origin, true);
 
             // The neighbours' heights
-            float[] nHeights = { 1f,  // F
+            float[] nHeights = { 1f,  // ORIGIN
+                                 1f,  // F
                                  1f,  // D
                                  1f,  // A
                                  1f,  // G
@@ -74,14 +81,15 @@ namespace LandscaperAnts {
             };
 
             // The neighbours' pheromone level
-            float[] nPheromones = { 0.01f,  // F
-                                    0.01f,  // D
-                                    0.01f,  // A
-                                    0.01f,  // G
-                                    0.01f,  // B
-                                    0.01f,  // H
-                                    0.01f,  // E
-                                    0.01f   // C
+            float[] nPheromones = { 0.00f,  // ORIGIN
+                                    0.00f,  // F
+                                    0.00f,  // D
+                                    0.00f,  // A
+                                    0.00f,  // G
+                                    0.00f,  // B
+                                    0.00f,  // H
+                                    0.00f,  // E
+                                    0.00f   // C
             };
 
             // Fill Pheromone and height levels at the neighbours to simulate a "realtime scenario"
@@ -101,18 +109,19 @@ namespace LandscaperAnts {
 
                 Vector2Int n = neighbours[i];
 
-                float distance = Vector2Int.Distance(n, destination);
+                //float distance = Vector2Int.Distance(n, destination);
 
-                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+                //float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
 
-                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneInfluence);
 
-                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
+                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
 
-                float slopePortion = heightDiff != 0 ? Mathf.Pow(Mathf.Abs(heightDiff), slopeInfluence) : 1;
+                denominator +=
+                    //distancePortion + 
+                    pheromonePortion +  
+                    slopePortion;
 
-                denominator += /*distancePortion + pheromonePortion +*/ slopePortion;
-                
             }
 
             // Nominator Calculation
@@ -127,15 +136,18 @@ namespace LandscaperAnts {
 
                 float distance = Vector2Int.Distance(n, destination);
 
-                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+                //float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
 
-                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneInfluence);
 
-                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
+                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
 
-                float slopePortion = heightDiff != 0 ? Mathf.Pow(Mathf.Abs(heightDiff), slopeInfluence) : 1;
-
-                float percentage = (/*distancePortion + pheromonePortion +*/ slopePortion) / denominator;
+                float percentage = (
+                    //distancePortion + 
+                    pheromonePortion + 
+                    slopePortion
+                    ) 
+                    / denominator;
 
                 totalPercentage += percentage;
 
@@ -144,18 +156,14 @@ namespace LandscaperAnts {
                 print($"{n} | Distance: {distance} | PH: {pheromonePortion} | Percentage: {percentage}");
             }
 
-            nPerctgs = nPerctgs.OrderBy(n => n.percentage).ToArray();
+            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
+
+            print(nextCell);
 
             print($"Total: {denominator} | Total Percentage: {totalPercentage}");
         }
 
-        private Vector2Int GetNextPoint(Vector2Int origin, Vector2Int destination, Vector2Int[] neighbours) {
-
-            float distanceGapInfluence = 3;
-
-            float distanceInfluence = 1;
-            float pheromoneInfluence = 1;
-            float slopeInfluence = 1;
+        private Vector2Int GetNextPoint(Vector2Int origin, Vector2Int[] neighbours) {
 
             // Denominator Calculation
 
@@ -165,17 +173,11 @@ namespace LandscaperAnts {
 
                 Vector2Int n = neighbours[i];
 
-                float distance = Vector2Int.Distance(n, destination);
+                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], 1);
 
-                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], 1);
 
-                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
-
-                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
-
-                float slopePortion = heightDiff != 0 ? Mathf.Pow(1 / Mathf.Abs(heightDiff), slopeInfluence) : 0;
-
-                denominator += distancePortion + pheromonePortion + slopePortion;
+                denominator += pheromonePortion + slopePortion;
 
             }
 
@@ -189,27 +191,59 @@ namespace LandscaperAnts {
 
                 Vector2Int n = neighbours[i];
 
-                float distance = Vector2Int.Distance(n, destination);
+                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], 1);
 
-                float distancePortion = Mathf.Pow(1 / Mathf.Pow(distance, distanceGapInfluence), distanceInfluence);
+                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], 1);
 
-                float pheromonePortion = Mathf.Pow(grid.Pheromones[n.y, n.x], pheromoneInfluence);
-
-                float heightDiff = grid.Heights[n.y, n.x] - grid.Heights[origin.y, origin.x];
-
-                float slopePortion = heightDiff != 0 ? Mathf.Pow(1 / Mathf.Abs(heightDiff), slopeInfluence) : 0;
-
-                float percentage = (distancePortion + pheromonePortion + slopePortion) / denominator;
+                float percentage = (pheromonePortion + slopePortion) / denominator;
 
                 totalPercentage += percentage;
 
                 nPerctgs[i] = (i, percentage);
-
-                print($"{n} | Distance: {distance} | PH: {pheromonePortion} | Percentage: {percentage}");
             }
 
-            // For now, return the neighbour with the highest percentage
-            return neighbours[nPerctgs.OrderBy(n => n.percentage).Last().index];
+            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
+
+            return nextCell;
+        }
+
+        private float CalcPheromonePercentage(float ph, float influence) {
+
+            return 1 + Mathf.Pow(ph, influence);
+        }
+
+        private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {
+
+            // ##### ROULETTE WHEEL #####
+
+            probabilities = probabilities.OrderBy(x => x.percentage).ToArray();
+
+            // Calculate cumulative sum
+            float[] cumulSum = new float[probabilities.Length + 1];
+
+            for (int i = 0; i < probabilities.Length; i++) {
+
+                cumulSum[i + 1] = cumulSum[i] + probabilities[i].percentage;
+            }
+
+            // Get random value between 0 and 1 (both inclusive)
+            float rnd = Random.value;
+
+            for (int i = 0; i < cumulSum.Length - 1; i++) {
+
+                if ((rnd >= cumulSum[i]) && (rnd < cumulSum[i + 1])) {
+
+                    return collection[probabilities[i].index];
+                }
+            }
+
+            // Choose the last cell if cumulative sum didn't achieve 1
+            return collection[probabilities[^1].index];
+        }
+
+        private float CalcSlopePercentage(float from, float to, float influence) {
+
+            return Mathf.Pow(Mathf.Abs(1 + to - from), influence);
         }
 
         // Method to generate a new graph
@@ -230,11 +264,10 @@ namespace LandscaperAnts {
         // Method to generate trails
         public void GenerateTrail() {
 
-            if (aco is not null && grid.Nodes is null)
+            if (aco is not null && grid.FoodCells is null)
                 return;
 
             grid.ResetMatrices();
-            bestTrail = null;
             print("----- Started ACO -----");
             aco = StartCoroutine(Run());
         }
@@ -242,8 +275,7 @@ namespace LandscaperAnts {
         // ACO main method
         private IEnumerator Run() {
 
-            // Create the necessary ants
-            ants = new Ant[nAnts];
+            InitAnts();
 
             // The current number of iterations
             int iterations = 0;
@@ -266,20 +298,75 @@ namespace LandscaperAnts {
             aco = null;
         }
 
+        // Initiate Ant state
+        private void InitAnts() {
+
+            // The starting position for all ants
+            int xStart = Random.Range(0, grid.BaseDim);
+            int yStart = Random.Range(0, grid.BaseDim);
+
+            Vector2Int start = new(xStart, yStart);
+
+            // Create the necessary ants
+            ants = new TestAnt[nAnts];
+
+            for (int i = 0; i < nAnts; i++) {
+
+                ants[i] = new TestAnt(start);
+            }
+
+            print($"Ants start at {start}");
+        }
+
         // Update the Ants' status
         private void UpdateAnts() {
 
-            // Loop through the number of Ants
-            for (int i = 0; i < nAnts; i++) {
+            // Loop through the amount of cells an ant is allowed to visit
+            for (int i = 0; i < antSteps; i++) {
 
-                // Dig a trail with each Ant
-                DigTrail();
+                if (shuffleAnts)
+                    ants.Shuffle();
+
+                // Loop through the number of ants
+                for (int j = 0; j < nAnts; j++) {
+
+                    // Get the current ant's cell
+                    Vector2Int current = ants[j].CurrentCell;
+
+                    // Get the (moore) neighbours of the current cell (can include itself)
+                    Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
+
+                    // Check if the ant found a food source
+                    if (FoundFood(neighbours)) {
+
+                        //// Start travelling back!
+                        //print($"Ant {j} found some food!");
+
+                        //// Decrement a manual value from the heightmap at the select cell
+                        //grid.Heights[current.y, current.x] -= heightIncr;
+
+                        // Get the next cell based on height and pheromone levels
+                        Vector2Int next = GetNextPoint(current, neighbours);
+
+                        // Decrement a manual value from the heightmap at the select cell
+                        grid.Heights[next.y, next.x] -= heightIncr;
+
+                        // Update the ant's current cell
+                        ants[j].CurrentCell = next;
+
+                    } else {
+
+                        // Get the next cell based on height and pheromone levels
+                        Vector2Int next = GetNextPoint(current, neighbours);
+
+                        // Decrement a manual value from the heightmap at the select cell
+                        grid.Heights[next.y, next.x] -= heightIncr;
+
+                        // Update the ant's current cell
+                        ants[j].CurrentCell = next;
+                    }
+                }
             }
-
-            // Note: This is not using the Ants themselves, but SHOULD in the future
-            // E.g.: Save the selected trail (not all ants should reproduce the same trail!)
-            //       Save the trail of points made by the Ant (this might not be necessary, but the cost might(?)!)
-            //       Ant trail cost should take into account: the number of points visited; the amount/average of height travelled; the ph levels encountered(?).
         }
 
         private void UpdateMatrices() {
@@ -287,67 +374,40 @@ namespace LandscaperAnts {
 
         }
 
+        // Main algorithm for path tracing
         private void DigTrail() {
 
-            // ----- THE PLAN -----
-            // Start Ant at origin
-            // Get next point coordinates
-            // Search neighbouring cells (Moore)
-            // Give neighbours weights based on ph level and height difference
-            // Also increases based on "closeness" to next point
+            
+        }
 
-            // Loop through all nodes (except the last one)
-            for (int i = 0; i < grid.Nodes.Length - 1; i++) {
+        // Checks if the Ant is next to a food source
+        private bool FoundFood(Vector2Int[] neighbours) {
 
-                // Get the point the Ant starts on
-                Vector2Int currentPoint = grid.Nodes[i];
+            // Returns true if one of the neighbouring cells is a food source
+            for (int i = 0; i < grid.FoodCells.Length; i++) {
 
-                // Get the point the Ant wishes to go to
-                Vector2Int endPoint = grid.Nodes[i + 1];
+                for (int j = 0; j < neighbours.Length; j++) {
 
-                // Loop for a big arbitrary number of times
-                // since we don't know how many points the Ant will visit
-                for (int j = 0; j < grid.BaseDim * grid.BaseDim; j++) {
+                    if (grid.FoodCells[i] == neighbours[j]) {
 
-                    // Get the neighbours of the current point
-                    Vector2Int[] neighbours = GetMooreNeighbours(currentPoint);
-
-                    // Variable to save the best distance found between a neighbour and the end point
-                    float bestDistance = float.MaxValue;
-
-                    // Loop through all found neighbours
-                    for (int k = 0; k < neighbours.Length; k++) {
-
-                        // Calculate the distance between a neighbour and the end point
-                        float neighbourEndDistance = Vector2Int.Distance(neighbours[k], endPoint);
-
-                        // Check if the distance is better than any previously found
-                        if (neighbourEndDistance < bestDistance) {
-
-                            // Update the current point and the best distance found so far
-                            currentPoint = neighbours[k];
-                            bestDistance = neighbourEndDistance;
-                        }
-
+                        return true;
                     }
-
-                    // currentPoint = GetNextPoint(currentPoint, endPoint, neighbours);
-
-                    // Decrement a manual value from the heightmap at the best neighbour
-                    grid.Heights[currentPoint.y, currentPoint.x] -= heightIncr;
-
-                    // Leave the for loop if the current point is the end point
-                    if (currentPoint == endPoint)
-                        break;
                 }
             }
+
+            // Returns false if no neighbour is a food source
+            return false;
         }
 
         // Search for a point's neighbours using Moore's neighbourhood algorithm
-        private Vector2Int[] GetMooreNeighbours(Vector2Int p) {
+        private Vector2Int[] GetMooreNeighbours(Vector2Int p, bool includeOrigin = false) {
 
             // The list of neighbours to find
             List<Vector2Int> neighbours = new();
+
+            // Add the origin as a neighbour if we want to include it
+            if (includeOrigin)
+                neighbours.Add(p);
 
             // Search for all neighbouring cells (Moore neighbourhood)
             for (int dx = -r; dx <= r; dx++) {

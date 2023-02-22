@@ -19,17 +19,17 @@ namespace LandscaperAnts {
         private int baseDim = 513;
 
         [SerializeField]
-        [Range(0.01f, 1f)]
+        [Range(0f, 1f)]
         [Tooltip("The initial pheromone levels on all grid elements")]
-        private float initPheromones = 0.01f;
+        private float initPheromones = 0f;
 
-        private Vector2Int[] nodes;  // The points of interest on the grid
+        private Vector2Int[] foodCells;  // The points of interest on the grid
         private float[,] heights;    // The height values on all elements of the grid
         private float[,] pheromones; // The pheromones values on all elements of the grid
 
         public int BaseDim => baseDim;
 
-        public Vector2Int[] Nodes => nodes;
+        public Vector2Int[] FoodCells => foodCells;
         public float[,] Heights => heights;
         public float[,] Pheromones => pheromones;
 
@@ -44,14 +44,14 @@ namespace LandscaperAnts {
         // Create a collection of points on random positions
         private void CreateNodes() {
 
-            nodes = new Vector2Int[nodesAmount];
+            foodCells = new Vector2Int[nodesAmount];
 
             for (int i = 0; i < nodesAmount; i++) {
 
                 int x = Random.Range(0, baseDim);
                 int y = Random.Range(0, baseDim);
 
-                nodes[i] = new Vector2Int(x, y);
+                foodCells[i] = new Vector2Int(x, y);
             }
         }
 

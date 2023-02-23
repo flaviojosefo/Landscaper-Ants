@@ -16,20 +16,20 @@ namespace LandscaperAnts {
         [SerializeField] private bool antsInPlace = true;                   // Should Ants be able to select the next cell as the one they're on?
         [SerializeField] private bool shuffleAnts = false;  // Should the Ants be shuffled when iterated?
 
-        [SerializeField, Range(1, 10000)] private int maxIterations = 1000; // The number of iterations on the main algorithm loop
+        [SerializeField, Range(1, 10000)] private int maxIterations = 1000; // The number of iterations of the main algorithm loop
 
         [SerializeField, Range(1, 50)] private int nAnts = 2;               // The amount of Ants
 
         [SerializeField, Range(1, 10000)] private float antSteps = 1;       // The number of steps an Ant can perform
 
-        [SerializeField, Range(0, 10)] private int alpha = 1;               // Pheromone influence factor (for pathfinding)
-        [SerializeField, Range(1, 10)] private int beta = 1;                // Cost influence factor (for pathfinding)
+        [SerializeField, Range(1, 10)] private int alpha = 1;               // Pheromone influence factor (for pathfinding)
+        [SerializeField, Range(1, 10)] private int beta = 1;                // Slope influence factor (for pathfinding)
 
         [SerializeField, Range(0f, 1f)] private float rho = 0.01f;          // Pheromone evaporation coefficient
         [SerializeField, Range(1, 5)] private int Q = 1;                    // Pheromone deposit coefficient
 
         [SerializeField, Range(1, 100)] private int r = 50;                 // The Moore neighbourdhood coefficient
-        [SerializeField] private float heightIncr = 0.0001f;                // -> THIS SHOULD BE REPLACED BY PHEROMONE INFLUENCE
+        [SerializeField] private float heightIncr = 0.0001f;                // The value that controls "heightmap digging"
 
         [SerializeField, Range(0, 1)] private float maxSlope = 0.9f;        // The max slope an Ant can endure
 
@@ -173,9 +173,9 @@ namespace LandscaperAnts {
 
                 Vector2Int n = neighbours[i];
 
-                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], 1);
+                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], alpha);
 
-                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], 1);
+                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], beta);
 
                 denominator += pheromonePortion + slopePortion;
 
@@ -191,9 +191,9 @@ namespace LandscaperAnts {
 
                 Vector2Int n = neighbours[i];
 
-                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], 1);
+                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], alpha);
 
-                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], 1);
+                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], beta);
 
                 float percentage = (pheromonePortion + slopePortion) / denominator;
 
@@ -324,6 +324,7 @@ namespace LandscaperAnts {
             // Loop through the amount of cells an ant is allowed to visit
             for (int i = 0; i < antSteps; i++) {
 
+                // Shuffle ants if required
                 if (shuffleAnts)
                     ants.Shuffle();
 
@@ -339,9 +340,8 @@ namespace LandscaperAnts {
                     // Check if the ant found a food source
                     if (FoundFood(neighbours)) {
 
-                        // Start travelling back!
-                        // Remember: Printing in here severely slows the loop!
-                        //print($"Ant {j} found some food!");
+                        // Have the Ant be "carrying" food
+                        ants[j].HasFood = true;
 
                         // Decrement a manual value from the heightmap at the select cell
                         grid.Heights[current.y, current.x] -= heightIncr;

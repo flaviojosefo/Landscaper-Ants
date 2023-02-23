@@ -13,7 +13,7 @@ public class TestAnt {
         StartCell = CurrentCell = start;
     }
 
-    public void PlaceAt(Vector2Int newStart) {
+    public void ResetAt(Vector2Int newStart) {
 
         StartCell = CurrentCell = newStart;
     }

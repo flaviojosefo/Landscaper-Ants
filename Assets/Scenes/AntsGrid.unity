@@ -990,17 +990,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acf27a41304e747418bfea481a7c0e57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  antsInPlace: 1
+  antsInPlace: 0
   shuffleAnts: 1
-  maxIterations: 5000
+  maxIterations: 1000
   nAnts: 25
   antSteps: 50
   alpha: 1
   beta: 1
+  gamma: 1
   rho: 0.01
   Q: 1
   r: 1
-  heightIncr: 0.005
+  heightIncr: 0.001
   maxSlope: 0.9
   terrain: {fileID: 451495196}
   grid:

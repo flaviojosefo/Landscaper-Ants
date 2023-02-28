@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TestAnt {
+public sealed class TestAnt {
 
     public bool HasFood { get; set; }
 

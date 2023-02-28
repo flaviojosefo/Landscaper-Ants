@@ -175,15 +175,21 @@ namespace LandscaperAnts {
         private Vector2Int GetNextPoint(Vector2Int origin, Vector2Int destination, Vector2Int[] neighbours, bool hasFood) {
 
             int foodMultiplier = hasFood ? 1 : 0;
-            int otherFoodMult = hasFood ? 0 : 1;
+            //int otherFoodMult = hasFood ? 0 : 1;
+
+            int neighboursAmount = neighbours.Length;
+
+            float[] pheromonePortions = new float[neighboursAmount];
+            float[] slopePortions = new float[neighboursAmount];
+            float[] directionPortions = new float[neighboursAmount];
 
             Vector2Int mainDirection = destination - origin;
 
-            // Denominator Calculation
+            // Calculate individual variable influences and save their sum
 
-            float denominator = 0;
+            float totalSum = 0;
 
-            for (int i = 0; i < neighbours.Length; i++) {
+            for (int i = 0; i < neighboursAmount; i++) {
 
                 Vector2Int n = neighbours[i];
                 
@@ -191,43 +197,27 @@ namespace LandscaperAnts {
                 Vector2Int direction = n - origin;
                 float angle = Vector2.Angle(mainDirection, direction);
 
-                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], alpha);
+                pheromonePortions[i] = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], alpha);
 
-                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], beta);
+                slopePortions[i] = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], beta);
 
-                float directionPortion = CalcDirectionPercentage(angle, gamma) * foodMultiplier;
+                directionPortions[i] = CalcDirectionPercentage(angle, gamma) * foodMultiplier;
 
-                denominator += pheromonePortion + slopePortion + directionPortion;
-
+                totalSum += pheromonePortions[i] + slopePortions[i] + directionPortions[i];
             }
 
-            // Nominator Calculation
+            // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
 
-            float totalPercentage = 0;
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
 
-            (int index, float percentage)[] nPerctgs = new (int, float)[neighbours.Length];
+            for (int i = 0; i < neighboursAmount; i++) {
 
-            for (int i = 0; i < neighbours.Length; i++) {
-
-                Vector2Int n = neighbours[i];
-
-                // Calculate direction and angle with [origin to destination] vector
-                Vector2Int direction = n - origin;
-                float angle = Vector2.Angle(mainDirection, direction);
-
-                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], alpha);
-
-                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], beta);
-
-                float directionPortion = CalcDirectionPercentage(angle, gamma) * foodMultiplier;
-
-                float percentage = (pheromonePortion + slopePortion + directionPortion) / denominator;
-
-                totalPercentage += percentage;
+                float percentage = (pheromonePortions[i] + slopePortions[i] + directionPortions[i]) / totalSum;
 
                 nPerctgs[i] = (i, percentage);
             }
 
+            // Randomly select the next cell
             Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
 
             return nextCell;

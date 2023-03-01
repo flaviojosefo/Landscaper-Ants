@@ -69,6 +69,8 @@ namespace LandscaperAnts {
             // Get the origin's neighbouring points
             Vector2Int[] neighbours = GetMooreNeighbours(origin, false);
 
+            int neighboursAmount = neighbours.Length;
+
             // The neighbours' heights
             float[] nHeights = { 1f,  // ORIGIN
                                  1f,  // F
@@ -94,13 +96,17 @@ namespace LandscaperAnts {
             };
 
             // Fill Pheromone and height levels at the neighbours to simulate a "realtime scenario"
-            for (int i = 0; i < neighbours.Length; i++) {
+            for (int i = 0; i < neighboursAmount; i++) {
 
                 Vector2Int n = neighbours[i];
 
                 grid.Pheromones[n.y, n.x] = nPheromones[i];
                 grid.Heights[n.y, n.x] = nHeights[i];
             }
+
+            float[] pheromonePortions = new float[neighboursAmount];
+            float[] slopePortions = new float[neighboursAmount];
+            float[] directionPortions = new float[neighboursAmount];
 
             // Denominator Calculation
 
@@ -109,7 +115,7 @@ namespace LandscaperAnts {
 
             float denominator = 0;
 
-            for (int i = 0; i < neighbours.Length; i++) {
+            for (int i = 0; i < neighboursAmount; i++) {
 
                 Vector2Int n = neighbours[i];
 
@@ -117,14 +123,14 @@ namespace LandscaperAnts {
                 Vector2Int direction = n - origin;
                 float angle = Vector2.Angle(mainDirection, direction);
 
-                float directionPortion = CalcDirectionPercentage(angle, directionInfluence);
+                directionPortions[i] = CalcDirectionPercentage(angle, directionInfluence);
 
-                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+                pheromonePortions[i] = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneInfluence);
 
-                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
+                slopePortions[i] = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
 
                 denominator +=
-                    directionPortion
+                    directionPortions[i]
                     //pheromonePortion +  
                     //slopePortion
                     ;
@@ -135,26 +141,14 @@ namespace LandscaperAnts {
 
             float totalPercentage = 0;
 
-            (int index, float percentage)[] nPerctgs = new (int, float)[neighbours.Length];
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
 
-            for (int i = 0; i < neighbours.Length; i++) {
-
-                Vector2Int n = neighbours[i];
-
-                // Calculate direction and angle with [origin to destination] vector
-                Vector2Int direction = n - origin;
-                float angle = Vector2.Angle(mainDirection, direction);
-
-                float directionPortion = CalcDirectionPercentage(angle, directionInfluence);
-
-                float pheromonePortion = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneInfluence);
-
-                float slopePortion = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
+            for (int i = 0; i < neighboursAmount; i++) {
 
                 float percentage = (
-                    directionPortion 
-                    //pheromonePortion + 
-                    //slopePortion
+                    directionPortions[i] 
+                    //pheromonePortions[i] + 
+                    //slopePortions[i]
                     ) 
                     / denominator;
 
@@ -162,7 +156,7 @@ namespace LandscaperAnts {
 
                 nPerctgs[i] = (i, percentage);
 
-                print($"{n} | Direction: {direction} | PH: {pheromonePortion} | Angle: {angle} | Percentage: {percentage}");
+                print($"{neighbours[i]} | PH: {pheromonePortions[i]} | Percentage: {percentage}");
             }
 
             Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);

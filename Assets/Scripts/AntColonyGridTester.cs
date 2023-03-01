@@ -30,6 +30,7 @@ namespace LandscaperAnts {
         [SerializeField, Range(1, 100)] private int r = 1;                  // The Moore neighbourdhood coefficient
         [SerializeField] private float heightIncr = 0.0001f;                // The value that controls "heightmap digging"
 
+        [SerializeField, Range(1, 10)] private float maxPheromones = 1;     // The max amount of pheromones allowed to be on any given cell
         [SerializeField, Range(0, 1)] private float maxSlope = 0.9f;        // The max slope an Ant can endure
 
         [SerializeField] private Terrain terrain;
@@ -53,11 +54,9 @@ namespace LandscaperAnts {
             Vector2Int origin = new(7, 4);      // The point the Ant is standing on
             Vector2Int destination = new(2, 4); // The Ant's destination
 
-            //float distanceGapInfluence = 3;     // The factor which increases the gap between distance percentages (Higher values == closer points have a higher percentage!)
-
-            float directionInfluence = 1;       // The factor that increases direction influence in the overall percentage calculation
             float pheromoneInfluence = 1;       // The factor that increases pheromone influence in the overall percentage calculation
             float slopeInfluence = 1;           // The factor that increases slope influence in the overall percentage calculation
+            float directionInfluence = 1;       // The factor that increases direction influence in the overall percentage calculation
 
             // ORDER OF IMPORTANCE: Slope --> Pheromones --> Distance (?)
 
@@ -215,6 +214,9 @@ namespace LandscaperAnts {
             return nextCell;
         }
 
+        // Graphics with the functions present below
+        // https://www.desmos.com/calculator/i6mplh4a4f
+
         private float CalcDirectionPortion(float angle, float weight) {
 
             return (1 - (angle / 180f)) * weight;
@@ -222,7 +224,7 @@ namespace LandscaperAnts {
 
         private float CalcPheromonePortion(float ph, float weight) {
 
-            return 1 + ph * weight;
+            return (ph / maxPheromones) * weight;
         }
 
         private float CalcSlopePortion(float from, float to, float weight) {

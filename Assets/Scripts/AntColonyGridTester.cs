@@ -1,7 +1,7 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Generator;
 using TMPro;
@@ -20,11 +20,11 @@ namespace LandscaperAnts {
 
         [SerializeField, Range(1, 50000)] private float maxSteps = 1000;    // The number of steps an Ant can perform
 
-        [SerializeField, Range(1, 10)] private int alpha = 1;               // Pheromone influence factor (for pathfinding)
-        [SerializeField, Range(1, 10)] private int beta = 1;                // Slope influence factor (for pathfinding)
-        [SerializeField, Range(1, 10)] private int gamma = 1;               // Direction to origin influence factor (for pathfinding)
+        [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;    // Pheromone weight used on cell selection
+        [SerializeField, Range(0, 1)] private float slopeWeight = 1;        // Slope weight used on cell selection
+        [SerializeField, Range(0, 1)] private float directionWeight = 1;    // Direction (to starting cell) weight used on cell selection
 
-        [SerializeField, Range(0f, 1f)] private float rho = 0.01f;          // Pheromone evaporation coefficient
+        [SerializeField, Range(0, 1)] private float rho = 0.01f;            // Pheromone evaporation coefficient
         [SerializeField, Range(1, 5)] private int Q = 1;                    // Pheromone deposit coefficient
 
         [SerializeField, Range(1, 100)] private int r = 1;                  // The Moore neighbourdhood coefficient
@@ -189,11 +189,11 @@ namespace LandscaperAnts {
                 Vector2Int direction = n - origin;
                 float angle = Vector2.Angle(mainDirection, direction);
 
-                pheromonePortions[i] = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], alpha);
+                pheromonePortions[i] = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneWeight);
 
-                slopePortions[i] = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], beta);
+                slopePortions[i] = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeWeight);
 
-                directionPortions[i] = CalcDirectionPercentage(angle, gamma) * foodMultiplier;
+                directionPortions[i] = CalcDirectionPercentage(angle, directionWeight) * foodMultiplier;
 
                 totalSum += pheromonePortions[i] + slopePortions[i] + directionPortions[i];
             }
@@ -215,19 +215,19 @@ namespace LandscaperAnts {
             return nextCell;
         }
 
-        private float CalcDirectionPercentage(float angle, float influence) {
+        private float CalcDirectionPercentage(float angle, float weight) {
 
-            return Mathf.Pow(-(angle - 180f) / 180f, 1) * influence;
+            return Mathf.Pow(-(angle - 180f) / 180f, 1) * weight;
         }
 
-        private float CalcPheromonePercentage(float ph, float influence) {
+        private float CalcPheromonePercentage(float ph, float weight) {
 
-            return 1 + Mathf.Pow(ph, influence);
+            return 1 + ph * weight;
         }
 
-        private float CalcSlopePercentage(float from, float to, float influence) {
+        private float CalcSlopePercentage(float from, float to, float weight) {
 
-            return Mathf.Pow(Mathf.Abs(1 + to - from), influence);
+            return Mathf.Abs(1 + to - from) * weight;
         }
 
         private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {

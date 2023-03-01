@@ -121,16 +121,16 @@ namespace LandscaperAnts {
                 Vector2Int direction = n - origin;
                 float angle = Vector2.Angle(mainDirection, direction);
 
-                directionPortions[i] = CalcDirectionPercentage(angle, directionInfluence);
+                directionPortions[i] = CalcDirectionPortion(angle, directionInfluence);
 
-                pheromonePortions[i] = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+                pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneInfluence);
 
-                slopePortions[i] = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
+                slopePortions[i] = CalcSlopePortion(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
 
                 denominator +=
                     directionPortions[i]
-                    //pheromonePortion +  
-                    //slopePortion
+                    //pheromonePortions[i] +  
+                    //slopePortions[i]
                     ;
 
             }
@@ -189,11 +189,11 @@ namespace LandscaperAnts {
                 Vector2Int direction = n - origin;
                 float angle = Vector2.Angle(mainDirection, direction);
 
-                pheromonePortions[i] = CalcPheromonePercentage(grid.Pheromones[n.y, n.x], pheromoneWeight);
+                pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
 
-                slopePortions[i] = CalcSlopePercentage(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeWeight);
+                slopePortions[i] = CalcSlopePortion(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeWeight);
 
-                directionPortions[i] = CalcDirectionPercentage(angle, directionWeight) * foodMultiplier;
+                directionPortions[i] = CalcDirectionPortion(angle, directionWeight) * foodMultiplier;
 
                 totalSum += pheromonePortions[i] + slopePortions[i] + directionPortions[i];
             }
@@ -215,19 +215,19 @@ namespace LandscaperAnts {
             return nextCell;
         }
 
-        private float CalcDirectionPercentage(float angle, float weight) {
+        private float CalcDirectionPortion(float angle, float weight) {
 
             return Mathf.Pow(-(angle - 180f) / 180f, 1) * weight;
         }
 
-        private float CalcPheromonePercentage(float ph, float weight) {
+        private float CalcPheromonePortion(float ph, float weight) {
 
             return 1 + ph * weight;
         }
 
-        private float CalcSlopePercentage(float from, float to, float weight) {
+        private float CalcSlopePortion(float from, float to, float weight) {
 
-            return Mathf.Abs(1 + to - from) * weight;
+            return (1 - Mathf.Abs(to - from)) * weight;
         }
 
         private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {

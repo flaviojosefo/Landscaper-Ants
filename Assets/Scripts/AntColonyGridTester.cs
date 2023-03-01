@@ -217,7 +217,7 @@ namespace LandscaperAnts {
 
         private float CalcDirectionPortion(float angle, float weight) {
 
-            return Mathf.Pow(-(angle - 180f) / 180f, 1) * weight;
+            return (1 - (angle / 180f)) * weight;
         }
 
         private float CalcPheromonePortion(float ph, float weight) {
@@ -228,7 +228,7 @@ namespace LandscaperAnts {
         private float CalcSlopePortion(float from, float to, float weight) {
 
             // The current terrain already goes from height of 0-1
-            // If this changes (e.g. 0-50) divide 'Mathf.Abs(to - from)' by the max height (e.g. 50)
+            // If this changes (e.g. 0-50), divide 'Mathf.Abs(to - from)' by the max height (e.g. 50)
             return (1 - Mathf.Abs(to - from)) * weight;
         }
 

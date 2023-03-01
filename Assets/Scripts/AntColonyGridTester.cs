@@ -16,11 +16,9 @@ namespace LandscaperAnts {
         [SerializeField] private bool antsInPlace = true;                   // Should Ants be able to select the next cell as the one they're on?
         [SerializeField] private bool shuffleAnts = false;                  // Should the Ants be shuffled when iterated?
 
-        [SerializeField, Range(1, 10000)] private int maxIterations = 1000; // The number of iterations of the main algorithm loop
-
         [SerializeField, Range(1, 50)] private int nAnts = 2;               // The amount of Ants
 
-        [SerializeField, Range(1, 10000)] private float antSteps = 1;       // The number of steps an Ant can perform
+        [SerializeField, Range(1, 50000)] private float maxSteps = 1000;    // The number of steps an Ant can perform
 
         [SerializeField, Range(1, 10)] private int alpha = 1;               // Pheromone influence factor (for pathfinding)
         [SerializeField, Range(1, 10)] private int beta = 1;                // Slope influence factor (for pathfinding)
@@ -40,7 +38,7 @@ namespace LandscaperAnts {
 
         [Header("Display Settings")]
 
-        [SerializeField] private TMP_Text itersUI;
+        [SerializeField] private TMP_Text stepsUI;
 
         private TestAnt[] ants;                                             // The Ants which will be pathtracing
 
@@ -293,16 +291,16 @@ namespace LandscaperAnts {
             InitAnts();
 
             // The current number of iterations
-            int iterations = 0;
+            int step = 0;
 
             // Main algorithm loop
-            while (iterations < maxIterations) {
+            while (step < maxSteps) {
 
                 UpdateAnts();
                 UpdateMatrices();
 
-                iterations++;
-                DisplayIterations(iterations);
+                step++;
+                DisplayCurrentStep(step);
 
                 yield return null;
             }
@@ -336,40 +334,36 @@ namespace LandscaperAnts {
         // Update the Ants' status
         private void UpdateAnts() {
 
-            // Loop through the amount of cells an ant is allowed to visit
-            for (int i = 0; i < antSteps; i++) {
+            // Shuffle ants if required
+            if (shuffleAnts)
+                ants.Shuffle();
 
-                // Shuffle ants if required
-                if (shuffleAnts)
-                    ants.Shuffle();
+            // Loop through the number of ants
+            for (int j = 0; j < nAnts; j++) {
 
-                // Loop through the number of ants
-                for (int j = 0; j < nAnts; j++) {
+                // Get the current ant's cell
+                Vector2Int current = ants[j].CurrentCell;
 
-                    // Get the current ant's cell
-                    Vector2Int current = ants[j].CurrentCell;
+                // Get the (moore) neighbours of the current cell (can include itself)
+                Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
 
-                    // Get the (moore) neighbours of the current cell (can include itself)
-                    Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
+                if (FoundFood(neighbours))
+                    ants[j].HasFood = true;
 
-                    if (FoundFood(neighbours))
-                        ants[j].HasFood = true;
+                // Get the next cell based on height and pheromone levels
+                Vector2Int next = GetNextPoint(current, ants[j].StartCell, neighbours, ants[j].HasFood);
 
-                    // Get the next cell based on height and pheromone levels
-                    Vector2Int next = GetNextPoint(current, ants[j].StartCell, neighbours, ants[j].HasFood);
+                // Decrement a manual value from the heightmap at the select cell
+                grid.Heights[next.y, next.x] -= heightIncr;
 
-                    // Decrement a manual value from the heightmap at the select cell
-                    grid.Heights[next.y, next.x] -= heightIncr;
-
-                    // Update the ant's current cell
-                    ants[j].CurrentCell = next;
-                }
+                // Update the ant's current cell
+                ants[j].CurrentCell = next;
             }
         }
 
         private void UpdateMatrices() {
 
-
+            // Evaporation & Dissipation
         }
 
         // Checks if the Ant is next to a food source
@@ -451,8 +445,8 @@ namespace LandscaperAnts {
             terrain.terrainData.SetHeights(0, 0, heights);
         }
 
-        private void DisplayIterations(int iter) =>
-            itersUI.text = $"{iter}";
+        private void DisplayCurrentStep(int step) =>
+            stepsUI.text = $"{step}";
 
         // Flatten the heightmap when quitting app
         private void OnApplicationQuit() => FlattenHeightmap();

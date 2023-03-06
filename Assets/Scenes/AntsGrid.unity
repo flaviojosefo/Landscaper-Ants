@@ -1194,13 +1194,15 @@ MonoBehaviour:
   shuffleAnts: 1
   nAnts: 25
   maxSteps: 25000
-  alpha: 1
-  beta: 1
-  gamma: 1
+  pheromoneWeight: 1
+  slopeWeight: 1
+  directionWeight: 1
   rho: 0.01
   Q: 1
   r: 1
   heightIncr: 0.001
+  pheromoneDeposit: 0.1
+  maxPheromones: 1
   maxSlope: 0.9
   terrain: {fileID: 451495196}
   grid:

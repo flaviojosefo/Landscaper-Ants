@@ -29,7 +29,8 @@ namespace LandscaperAnts {
         [SerializeField, Range(1, 5)] private int Q = 1;                    // Pheromone deposit coefficient
 
         [SerializeField, Range(1, 100)] private int r = 1;                  // The Moore neighbourdhood coefficient
-        [SerializeField] private float heightIncr = 0.0001f;                // The value that controls "heightmap digging"
+        [SerializeField] private float heightIncr = 0.0001f;                // The height value that ants remove from a given cell
+        [SerializeField] private float pheromoneDeposit = 0.1f;             // The pheromone value that ants deposit on a given cell
 
         [SerializeField, Range(1, 10)] private float maxPheromones = 1;     // The max amount of pheromones allowed to be on any given cell
         [SerializeField, Range(0, 1)] private float maxSlope = 0.9f;        // The max slope an Ant can endure
@@ -402,7 +403,10 @@ namespace LandscaperAnts {
                     next = GetNextPoint(current, ants[i].StartCell, neighbours);
 
                     // Increment the value of pheromone deposit on the selected cell
-                    grid.Pheromones[next.y, next.x] += 0.01f;
+                    float newPheromoneValue = grid.Pheromones[next.y, next.x] + pheromoneDeposit;
+
+                    // Apply the new value but clamp between a min and max
+                    grid.Pheromones[next.y, next.x] = Mathf.Clamp(newPheromoneValue, 0, maxPheromones);
 
                 } else {
 

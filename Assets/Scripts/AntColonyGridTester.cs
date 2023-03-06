@@ -164,7 +164,7 @@ namespace LandscaperAnts {
             print($"Total: {denominator} | Total Percentage: {totalPercentage}");
         }
 
-        // Divide this function into two? With and without destination (since it makes no sense to have one when just searching for food)?
+        // Returns a (pheromone and slope influenced) point for the Ant to move towards
         private Vector2Int GetNextPoint(Vector2Int current, Vector2Int[] neighbours) {
 
             int neighboursAmount = neighbours.Length;
@@ -204,6 +204,7 @@ namespace LandscaperAnts {
             return nextCell;
         }
 
+        // Returns a (slope and direction [to destination] influenced) point for the Ant to move towards
         private Vector2Int GetNextPoint(Vector2Int current, Vector2Int destination, Vector2Int[] neighbours) {
 
             int neighboursAmount = neighbours.Length;
@@ -269,6 +270,7 @@ namespace LandscaperAnts {
             return (1 - Mathf.Abs(to - from)) * weight;
         }
 
+        // Choose a random member of a collection based on a roulette wheel operation
         private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {
 
             // ##### ROULETTE WHEEL #####

@@ -6,6 +6,7 @@ using UnityEngine;
 using Generator;
 using TMPro;
 using Random = UnityEngine.Random;
+using Unity.VisualScripting;
 
 namespace LandscaperAnts {
 
@@ -163,18 +164,13 @@ namespace LandscaperAnts {
             print($"Total: {denominator} | Total Percentage: {totalPercentage}");
         }
 
-        private Vector2Int GetNextPoint(Vector2Int origin, Vector2Int destination, Vector2Int[] neighbours, bool hasFood) {
-
-            int foodMultiplier = hasFood ? 1 : 0;
-            //int otherFoodMult = hasFood ? 0 : 1;
+        // Divide this function into two? With and without destination (since it makes no sense to have one when just searching for food)?
+        private Vector2Int GetNextPoint(Vector2Int current, Vector2Int[] neighbours) {
 
             int neighboursAmount = neighbours.Length;
 
             float[] pheromonePortions = new float[neighboursAmount];
             float[] slopePortions = new float[neighboursAmount];
-            float[] directionPortions = new float[neighboursAmount];
-
-            Vector2Int mainDirection = destination - origin;
 
             // Calculate individual variable influences and save their sum
 
@@ -183,18 +179,12 @@ namespace LandscaperAnts {
             for (int i = 0; i < neighboursAmount; i++) {
 
                 Vector2Int n = neighbours[i];
-                
-                // Calculate direction and angle with [origin to destination] vector
-                Vector2Int direction = n - origin;
-                float angle = Vector2.Angle(mainDirection, direction);
 
                 pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
 
-                slopePortions[i] = CalcSlopePortion(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeWeight);
+                slopePortions[i] = CalcSlopePortion(grid.Heights[current.y, current.x], grid.Heights[n.y, n.x], slopeWeight);
 
-                directionPortions[i] = CalcDirectionPortion(angle, directionWeight) * foodMultiplier;
-
-                totalSum += pheromonePortions[i] + slopePortions[i] + directionPortions[i];
+                totalSum += pheromonePortions[i] + slopePortions[i];
             }
 
             // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
@@ -203,7 +193,52 @@ namespace LandscaperAnts {
 
             for (int i = 0; i < neighboursAmount; i++) {
 
-                float percentage = (pheromonePortions[i] + slopePortions[i] + directionPortions[i]) / totalSum;
+                float percentage = (pheromonePortions[i] + slopePortions[i]) / totalSum;
+
+                nPerctgs[i] = (i, percentage);
+            }
+
+            // Randomly select the next cell
+            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
+
+            return nextCell;
+        }
+
+        private Vector2Int GetNextPoint(Vector2Int current, Vector2Int destination, Vector2Int[] neighbours) {
+
+            int neighboursAmount = neighbours.Length;
+
+            float[] slopePortions = new float[neighboursAmount];
+            float[] directionPortions = new float[neighboursAmount];
+
+            Vector2Int mainDirection = destination - current;
+
+            // Calculate individual variable influences and save their sum
+
+            float totalSum = 0;
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                // Calculate direction and angle with [origin to destination] vector
+                Vector2Int direction = n - current;
+                float angle = Vector2.Angle(mainDirection, direction);
+
+                slopePortions[i] = CalcSlopePortion(grid.Heights[current.y, current.x], grid.Heights[n.y, n.x], slopeWeight);
+
+                directionPortions[i] = CalcDirectionPortion(angle, directionWeight);
+
+                totalSum += slopePortions[i] + directionPortions[i];
+            }
+
+            // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
+
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                float percentage = (slopePortions[i] + directionPortions[i]) / totalSum;
 
                 nPerctgs[i] = (i, percentage);
             }
@@ -301,7 +336,7 @@ namespace LandscaperAnts {
             while (step < maxSteps) {
 
                 UpdateAnts();
-                UpdateMatrices();
+                UpdatePheromones();
 
                 step++;
                 DisplayCurrentStep(step);
@@ -343,31 +378,63 @@ namespace LandscaperAnts {
                 ants.Shuffle();
 
             // Loop through the number of ants
-            for (int j = 0; j < nAnts; j++) {
+            for (int i = 0; i < nAnts; i++) {
 
                 // Get the current ant's cell
-                Vector2Int current = ants[j].CurrentCell;
+                Vector2Int current = ants[i].CurrentCell;
 
                 // Get the (moore) neighbours of the current cell (can include itself)
                 Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
 
-                if (FoundFood(neighbours))
-                    ants[j].HasFood = true;
+                // The cell the Ant will go to next
+                Vector2Int next;
 
-                // Get the next cell based on height and pheromone levels
-                Vector2Int next = GetNextPoint(current, ants[j].StartCell, neighbours, ants[j].HasFood);
+                // Check if the Ant is "carrying" food
+                if (ants[i].HasFood) {
+
+                    // If the Ant gets back home, stop carrying food
+                    if (IsHome(ants[i]))
+                        ants[i].HasFood = false;
+
+                    // Choose the next cell with the idea of coming back home
+                    next = GetNextPoint(current, ants[i].StartCell, neighbours);
+
+                    // Increment the value of pheromone deposit on the selected cell
+                    grid.Pheromones[next.y, next.x] += 0.01f;
+
+                } else {
+
+                    // If the Ant found some food, start carrying it
+                    if (FoundFood(neighbours))
+                        ants[i].HasFood = true;
+
+                    // Choose the next cell with the idea of aimlessly searching for food
+                    next = GetNextPoint(current, neighbours);
+                }
 
                 // Decrement a manual value from the heightmap at the select cell
                 grid.Heights[next.y, next.x] -= heightIncr;
 
                 // Update the ant's current cell
-                ants[j].CurrentCell = next;
+                ants[i].CurrentCell = next;
             }
         }
 
-        private void UpdateMatrices() {
+        private void UpdatePheromones() {
 
             // Evaporation & Dissipation
+
+            for (int i = 0; i < grid.BaseDim; i++) {
+
+                for (int j = 0; j < grid.BaseDim; j++) {
+
+                    // Calculate new value based on evaporation
+                    float evaporated = (1 - rho) * grid.Pheromones[i, j];
+
+                    // Update pheromone value in specific cell
+                    grid.Pheromones[i, j] = evaporated;
+                }
+            }
         }
 
         // Checks if the Ant is next to a food source
@@ -388,6 +455,9 @@ namespace LandscaperAnts {
             // Returns false if no neighbour is a food source
             return false;
         }
+
+        // Check if the Ant is (back) at home
+        private bool IsHome(TestAnt ant) => ant.CurrentCell == ant.StartCell;
 
         // Search for a point's neighbours using Moore's neighbourhood algorithm
         private Vector2Int[] GetMooreNeighbours(Vector2Int p, bool includeOrigin = false) {

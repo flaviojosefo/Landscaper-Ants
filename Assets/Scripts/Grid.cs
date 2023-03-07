@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using Object = UnityEngine.Object;
 
 namespace LandscaperAnts {
 
@@ -23,9 +24,17 @@ namespace LandscaperAnts {
         [Tooltip("The initial pheromone levels on all grid elements")]
         private float initPheromones = 0f;
 
+        [Header("Display Settings")]
+
+        [SerializeField]
+        private GameObject foodSprite;
+
+        [SerializeField]
+        private Transform spritesParent;
+
         private Vector2Int[] foodCells;  // The points of interest on the grid
-        private float[,] heights;    // The height values on all elements of the grid
-        private float[,] pheromones; // The pheromones values on all elements of the grid
+        private float[,] heights;        // The height values on all elements of the grid
+        private float[,] pheromones;     // The pheromones values on all elements of the grid
 
         public int BaseDim => baseDim;
 
@@ -39,6 +48,8 @@ namespace LandscaperAnts {
             CreateNodes();
 
             CreateMatrices();
+
+            DisplayFoodSprites();
         }
 
         // Create a collection of points on random positions
@@ -67,7 +78,10 @@ namespace LandscaperAnts {
                 for (int j = 0; j < baseDim; j++) {
 
                     // Set inital height
-                    heights[i, j] = 1.0f;
+                    //heights[i, j] = 1.0f;
+                    heights[i, j] = Mathf.PerlinNoise(
+                        (10f * i) / baseDim,
+                        (10f * j) / baseDim);
 
                     // Set initial pheromone amount
                     pheromones[i, j] = initPheromones;
@@ -95,5 +109,31 @@ namespace LandscaperAnts {
         }
 
         public void ResetMatrices() => CreateMatrices();
+
+        // Assumes the terrain is in the center of the 3D world
+        public Vector3 TexelToVector(Vector2Int texel) {
+
+            return new() {
+                x = ((texel.x / (float)baseDim) * 10f) - 5,
+                y = 1.01f,
+                z = ((texel.y / (float)baseDim) * 10f) - 5
+            };
+        }
+
+        // Display sprites representing food at their 3D equivalent location
+        private void DisplayFoodSprites() {
+
+            // Skip creation if no sprite is given
+            if (foodSprite is null)
+                return;
+
+            // Instantiate each sprite
+            for (int i = 0; i < nodesAmount; i++) {
+
+                Vector3 spritePos = TexelToVector(foodCells[i]);
+
+                Object.Instantiate(foodSprite, spritesParent).transform.position = spritePos;
+            }
+        }
     }
 }

@@ -1225,7 +1225,7 @@ MonoBehaviour:
   antsInPlace: 0
   shuffleAnts: 1
   nAnts: 25
-  maxSteps: 10000
+  maxSteps: 100000
   pheromoneWeight: 1
   slopeWeight: 1
   directionWeight: 1

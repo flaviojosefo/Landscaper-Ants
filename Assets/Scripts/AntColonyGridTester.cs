@@ -6,7 +6,6 @@ using UnityEngine;
 using Generator;
 using TMPro;
 using Random = UnityEngine.Random;
-using Unity.VisualScripting;
 
 namespace LandscaperAnts {
 
@@ -19,7 +18,7 @@ namespace LandscaperAnts {
 
         [SerializeField, Range(1, 50)] private int nAnts = 2;               // The amount of Ants
 
-        [SerializeField, Range(1, 50000)] private float maxSteps = 1000;    // The number of steps an Ant can perform
+        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;    // The number of steps an Ant can perform
 
         [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;    // Pheromone weight used on cell selection
         [SerializeField, Range(0, 1)] private float slopeWeight = 1;        // Slope weight used on cell selection

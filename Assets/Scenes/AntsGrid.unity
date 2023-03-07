@@ -942,6 +942,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1913996898}
+--- !u!1 &1627694048
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1627694049}
+  m_Layer: 0
+  m_Name: FoodPoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1627694049
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1627694048}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1913996898}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1876219935
 GameObject:
   m_ObjectHideFlags: 0
@@ -1175,6 +1206,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 451495197}
+  - {fileID: 1627694049}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1193,23 +1225,26 @@ MonoBehaviour:
   antsInPlace: 0
   shuffleAnts: 1
   nAnts: 25
-  maxSteps: 25000
+  maxSteps: 10000
   pheromoneWeight: 1
   slopeWeight: 1
   directionWeight: 1
-  rho: 0.01
+  rho: 0.5
   Q: 1
   r: 1
-  heightIncr: 0.001
+  heightIncr: 0.005
   pheromoneDeposit: 0.1
   maxPheromones: 1
   maxSlope: 0.9
   terrain: {fileID: 451495196}
   grid:
-    nodesAmount: 50
+    nodesAmount: 20
     baseDim: 513
     initPheromones: 0.01
+    foodSprite: {fileID: 7786452733030419128, guid: f3669ae66df5e2e4aa9ab55d14708b33, type: 3}
+    spritesParent: {fileID: 1627694049}
   stepsUI: {fileID: 901818752}
+  homeSprite: {fileID: 7914310464857806456, guid: b988fc258e0871d429e6e5f1cb8a9097, type: 3}
 --- !u!1 &2108748797
 GameObject:
   m_ObjectHideFlags: 0

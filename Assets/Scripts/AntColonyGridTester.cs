@@ -43,6 +43,8 @@ namespace LandscaperAnts {
 
         [SerializeField] private TMP_Text stepsUI;
 
+        [SerializeField] private GameObject homeSprite;
+
         private TestAnt[] ants;                                             // The Ants which will be pathtracing
 
         private Coroutine aco;                                              // The coroutine for the ACO main loop (1 iteration per frame)
@@ -370,6 +372,8 @@ namespace LandscaperAnts {
                 ants[i] = new TestAnt(start);
             }
 
+            DisplayHomeSprite(start);
+
             print($"Ants start at {start}");
         }
 
@@ -529,6 +533,19 @@ namespace LandscaperAnts {
 
             // Apply the flattened heightmap on the terrain
             terrain.terrainData.SetHeights(0, 0, heights);
+        }
+
+        // Display sprites representing food at their 3D equivalent location
+        private void DisplayHomeSprite(Vector2Int start) {
+
+            // Skip creation if no sprite is given
+            if (homeSprite is null)
+                return;
+
+            // Instantiate sprite
+            Vector3 spritePos = grid.TexelToVector(start);
+
+            Instantiate(homeSprite, transform).transform.position = spritePos;
         }
 
         private void DisplayCurrentStep(int step) =>

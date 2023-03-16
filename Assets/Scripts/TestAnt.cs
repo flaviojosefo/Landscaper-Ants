@@ -4,17 +4,20 @@ public sealed class TestAnt {
 
     public bool HasFood { get; set; }
 
-    public Vector2Int StartCell { get; set; }
+    public Vector2Int StartingCell { get; private set; }
 
     public Vector2Int CurrentCell { get; set; }
 
     public TestAnt(Vector2Int start) {
 
-        StartCell = CurrentCell = start;
+        StartingCell = CurrentCell = start;
     }
 
     public void ResetAt(Vector2Int newStart) {
 
-        StartCell = CurrentCell = newStart;
+        StartingCell = CurrentCell = newStart;
     }
+
+    // Check if the Ant is (back) at home
+    public bool IsHome() => CurrentCell == StartingCell;
 }

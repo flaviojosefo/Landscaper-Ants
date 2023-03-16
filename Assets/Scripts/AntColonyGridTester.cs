@@ -16,7 +16,7 @@ namespace LandscaperAnts {
         [SerializeField] private bool antsInPlace = true;                   // Should Ants be able to select the next cell as the one they're on?
         [SerializeField] private bool shuffleAnts = false;                  // Should the Ants be shuffled when iterated?
 
-        [SerializeField, Range(1, 50)] private int nAnts = 2;               // The amount of Ants
+        [SerializeField, Range(1, 500)] private int nAnts = 2;               // The amount of Ants
 
         [SerializeField, Range(1, 100000)] private float maxSteps = 1000;    // The number of steps an Ant can perform
 
@@ -397,7 +397,7 @@ namespace LandscaperAnts {
 
                 // Check if the Ant is "carrying" food
                 // This first check simply changes the ant's state
-                if (ants[i].HasFood && IsHome(ants[i])) {
+                if (ants[i].HasFood && ants[i].IsHome()) {
 
                     // If the Ant gets back home, stop carrying food
                     ants[i].HasFood = false;
@@ -413,7 +413,7 @@ namespace LandscaperAnts {
                 if (ants[i].HasFood) {
 
                     // Choose the next cell with the idea of coming back home
-                    next = GetNextPoint(current, ants[i].StartCell, neighbours);
+                    next = GetNextPoint(current, ants[i].StartingCell, neighbours);
 
                     // Increment the value of pheromone deposit on the selected cell
                     float newPheromoneValue = grid.Pheromones[next.y, next.x] + pheromoneDeposit;
@@ -470,9 +470,6 @@ namespace LandscaperAnts {
             // Returns false if no neighbour is a food source
             return false;
         }
-
-        // Check if the Ant is (back) at home
-        private bool IsHome(TestAnt ant) => ant.CurrentCell == ant.StartCell;
 
         // Search for a point's neighbours using Moore's neighbourhood algorithm
         private Vector2Int[] GetMooreNeighbours(Vector2Int p, bool includeOrigin = false) {

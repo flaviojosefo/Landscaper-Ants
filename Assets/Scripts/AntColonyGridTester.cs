@@ -46,7 +46,7 @@ namespace LandscaperAnts {
 
         private TestAnt[] ants;                                             // The Ants which will be pathtracing
 
-        private Coroutine aco;                                              // The coroutine for the ACO main loop (1 iteration per frame)
+        private Coroutine antWork;                                          // The coroutine for the algorithm's main loop (1 iteration/step per frame)
 
         //private void Start() {
 
@@ -306,7 +306,7 @@ namespace LandscaperAnts {
         public void GenerateGraph() {
 
             // Return if the algorithm is executing
-            if (aco is not null)
+            if (antWork is not null)
                 return;
 
             // Reset heightmap
@@ -320,15 +320,15 @@ namespace LandscaperAnts {
         // Method to generate trails
         public void GenerateTrail() {
 
-            if (aco is not null && grid.Foods is null)
+            if (antWork is not null && grid.Foods is null)
                 return;
 
             grid.ResetMatrices();
             print("----- Started ACO -----");
-            aco = StartCoroutine(Run());
+            antWork = StartCoroutine(Run());
         }
 
-        // ACO main method
+        // Algorithm's main method
         private IEnumerator Run() {
 
             InitAnts();
@@ -351,10 +351,15 @@ namespace LandscaperAnts {
             // Update the terrain's heightmap
             terrain.terrainData.SetHeights(0, 0, grid.Heights);
 
-            aco = null;
+            for (int i = 0; i < grid.Foods.Length; i++) {
+
+                print(grid.Foods[i].Bites);
+            }
+
+            antWork = null;
         }
 
-        // Initiate Ant state
+        // Initiate Ant state (mainly their position)
         private void InitAnts() {
 
             // The starting position for all ants
@@ -402,10 +407,17 @@ namespace LandscaperAnts {
                     // If the Ant gets back home, stop carrying food
                     ants[i].HasFood = false;
 
-                } else if (!ants[i].HasFood && FoundFood(neighbours)) {
+                } else if (!ants[i].HasFood && FoundFood(neighbours, out Food food)) {
 
-                    // If the Ant found some food, start carrying it
-                    ants[i].HasFood = true;
+                    // Is there any food left?
+                    if (food.HasBitesLeft()) {
+
+                        // "Take a bite" out of the food
+                        food.TakeABite();
+
+                        // Start carrying food
+                        ants[i].HasFood = true;
+                    }
                 }
 
                 // Check if the Ant is "carrying" food
@@ -453,7 +465,7 @@ namespace LandscaperAnts {
         }
 
         // Checks if the Ant is next to a food source
-        private bool FoundFood(Vector2Int[] neighbours) {
+        private bool FoundFood(Vector2Int[] neighbours, out Food food) {
 
             // Returns true if one of the neighbouring cells is a food source
             for (int i = 0; i < grid.Foods.Length; i++) {
@@ -462,10 +474,16 @@ namespace LandscaperAnts {
 
                     if (grid.Foods[i].Cell == neighbours[j]) {
 
+                        // 'out' the food that was found
+                        food = grid.Foods[i];
+
                         return true;
                     }
                 }
             }
+
+            // No food was found
+            food = null;
 
             // Returns false if no neighbour is a food source
             return false;
@@ -505,6 +523,20 @@ namespace LandscaperAnts {
 
             // Convert the list to an array and return it
             return neighbours.ToArray();
+        }
+
+        // Stops the algorithm
+        public void EndCoroutine() {
+
+            // Return if the coroutine isn't running
+            if (antWork is null)
+                return;
+
+            // Stops the algorithm's coroutine
+            StopCoroutine(antWork);
+
+            // Updates the terrain with the last height values
+            terrain.terrainData.SetHeights(0, 0, grid.Heights);
         }
 
         // Resets the heightmap

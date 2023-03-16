@@ -320,7 +320,7 @@ namespace LandscaperAnts {
         // Method to generate trails
         public void GenerateTrail() {
 
-            if (aco is not null && grid.FoodCells is null)
+            if (aco is not null && grid.Foods is null)
                 return;
 
             grid.ResetMatrices();
@@ -456,11 +456,11 @@ namespace LandscaperAnts {
         private bool FoundFood(Vector2Int[] neighbours) {
 
             // Returns true if one of the neighbouring cells is a food source
-            for (int i = 0; i < grid.FoodCells.Length; i++) {
+            for (int i = 0; i < grid.Foods.Length; i++) {
 
                 for (int j = 0; j < neighbours.Length; j++) {
 
-                    if (grid.FoodCells[i] == neighbours[j]) {
+                    if (grid.Foods[i].Cell == neighbours[j]) {
 
                         return true;
                     }

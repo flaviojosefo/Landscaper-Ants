@@ -20,6 +20,10 @@ namespace LandscaperAnts {
         private int foodAmount = 4;
 
         [SerializeField]
+        [Tooltip("The max amount times a food can be accessed")]
+        private int maxFoodBites = 10;
+
+        [SerializeField]
         [Tooltip("The dimensions of the grid")]
         private int baseDim = 513;
 
@@ -36,13 +40,13 @@ namespace LandscaperAnts {
         [SerializeField]
         private Transform spritesParent;
 
-        private Vector2Int[] foodCells;  // The points of interest on the grid
+        private Food[] foods;            // The points of interest on the grid
         private float[,] heights;        // The height values on all elements of the grid
         private float[,] pheromones;     // The pheromones values on all elements of the grid
 
         public int BaseDim => baseDim;
 
-        public Vector2Int[] FoodCells => foodCells;
+        public Food[] Foods => foods;
         public float[,] Heights => heights;
         public float[,] Pheromones => pheromones;
 
@@ -59,14 +63,16 @@ namespace LandscaperAnts {
         // Create a collection of points on random positions
         private void CreateNodes() {
 
-            foodCells = new Vector2Int[foodAmount];
+            foods = new Food[foodAmount];
 
             for (int i = 0; i < foodAmount; i++) {
 
                 int x = Random.Range(0, baseDim);
                 int y = Random.Range(0, baseDim);
 
-                foodCells[i] = new Vector2Int(x, y);
+                Vector2Int foodCell = new(x, y);
+
+                foods[i] = new Food(foodCell, maxFoodBites);
             }
         }
 
@@ -140,7 +146,7 @@ namespace LandscaperAnts {
             // Instantiate each sprite
             for (int i = 0; i < foodAmount; i++) {
 
-                Vector3 spritePos = TexelToVector(foodCells[i]);
+                Vector3 spritePos = TexelToVector(foods[i].Cell);
 
                 Object.Instantiate(foodSprite, spritesParent).transform.position = spritePos;
             }

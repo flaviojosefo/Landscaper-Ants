@@ -184,7 +184,7 @@ namespace LandscaperAnts {
 
                 pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
 
-                slopePortions[i] = CalcSlopePortion(grid.Heights[current.y, current.x], grid.Heights[n.y, n.x], slopeWeight);
+                slopePortions[i] = CalcSlopePortion(grid.NormalHeights[current.y, current.x], grid.NormalHeights[n.y, n.x], slopeWeight);
 
                 totalSum += pheromonePortions[i] + slopePortions[i];
             }
@@ -228,7 +228,7 @@ namespace LandscaperAnts {
                 Vector2Int direction = n - current;
                 float angle = Vector2.Angle(mainDirection, direction);
 
-                slopePortions[i] = CalcSlopePortion(grid.Heights[current.y, current.x], grid.Heights[n.y, n.x], slopeWeight);
+                slopePortions[i] = CalcSlopePortion(grid.NormalHeights[current.y, current.x], grid.NormalHeights[n.y, n.x], slopeWeight);
 
                 directionPortions[i] = CalcDirectionPortion(angle, directionWeight);
 

@@ -44,11 +44,15 @@ namespace LandscaperAnts {
         private float[,] heights;        // The height values on all elements of the grid
         private float[,] pheromones;     // The pheromones values on all elements of the grid
 
+        private float[,] normalHeights;                 // Testing for translated/normalized values
+
         public int BaseDim => baseDim;
 
         public Food[] Foods => foods;
         public float[,] Heights => heights;
         public float[,] Pheromones => pheromones;
+
+        public float[,] NormalHeights => normalHeights; // Testing for translated/normalized values
 
         // Setup all grid variables
         public void Generate() {
@@ -80,6 +84,7 @@ namespace LandscaperAnts {
         private void CreateMatrices() {
 
             heights = new float[baseDim, baseDim];
+            normalHeights = new float[baseDim, baseDim];
 
             pheromones = new float[baseDim, baseDim];
 
@@ -90,13 +95,13 @@ namespace LandscaperAnts {
                     // Set initial height
                     if (flatTerrain) {
 
-                        heights[i, j] = 1.0f;
+                        heights[i, j] = 0.0f;
 
                     } else {
 
                         heights[i, j] = Mathf.PerlinNoise(
                             (10f * i) / baseDim,
-                            (10f * j) / baseDim);
+                            (10f * j) / baseDim) - 1.0f;
                     }
 
                     // Set initial pheromone amount

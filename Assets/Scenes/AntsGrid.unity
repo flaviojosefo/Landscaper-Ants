@@ -1508,8 +1508,8 @@ MonoBehaviour:
   maxSlope: 0.9
   terrain: {fileID: 451495196}
   grid:
-    flatTerrain: 0
-    foodAmount: 50
+    flatTerrain: 1
+    foodAmount: 5
     maxFoodBites: 5
     baseDim: 513
     initPheromones: 0.01

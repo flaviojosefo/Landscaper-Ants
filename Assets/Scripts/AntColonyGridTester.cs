@@ -253,7 +253,7 @@ namespace LandscaperAnts {
         }
 
         // Graphics with the functions present below
-        // https://www.desmos.com/calculator/i6mplh4a4f
+        // https://www.desmos.com/calculator/gc1pygvebj
 
         private float CalcDirectionPortion(float angle, float weight) {
 
@@ -267,8 +267,7 @@ namespace LandscaperAnts {
 
         private float CalcSlopePortion(float from, float to, float weight) {
 
-            // The current terrain already goes from height of 0-1
-            // If this changes (e.g. 0-50), divide 'Mathf.Abs(to - from)' by the max height (e.g. 50)
+            // The terrain must go from height of 0-1
             return (1 - Mathf.Abs(to - from)) * weight;
         }
 
@@ -328,7 +327,7 @@ namespace LandscaperAnts {
             antWork = StartCoroutine(Run());
         }
 
-        // Algorithm's main method
+        // Algorithm's main method -> Threads: https://github.com/nunofachada/AIUnityExamples/blob/main/MovementOptimize/Assets/Scripts/Optimizer.cs
         private IEnumerator Run() {
 
             InitAnts();
@@ -341,6 +340,7 @@ namespace LandscaperAnts {
 
                 UpdateAnts();
                 UpdatePheromones();
+                UpdateHeights();
 
                 step++;
                 DisplayCurrentStep(step);
@@ -349,12 +349,7 @@ namespace LandscaperAnts {
             }
 
             // Update the terrain's heightmap
-            terrain.terrainData.SetHeights(0, 0, grid.Heights);
-
-            for (int i = 0; i < grid.Foods.Length; i++) {
-
-                print(grid.Foods[i].Bites);
-            }
+            terrain.terrainData.SetHeights(0, 0, grid.NormalHeights);
 
             antWork = null;
         }
@@ -525,6 +520,32 @@ namespace LandscaperAnts {
             return neighbours.ToArray();
         }
 
+        private void UpdateHeights() {
+
+            float min = float.MaxValue;
+
+            for (int i = 0; i < grid.BaseDim; i++) {
+
+                for (int j = 0; j < grid.BaseDim; j++) {
+
+                    if (grid.Heights[i, j] < min)
+                        min = grid.Heights[i, j];
+                }
+            }
+
+            float offset = -min;
+
+            for (int i = 0; i < grid.BaseDim; i++) {
+
+                for (int j = 0; j < grid.BaseDim; j++) {
+
+                    float offsetHeight = (grid.Heights[i, j] + offset) / offset;
+
+                    grid.NormalHeights[i, j] = offsetHeight;
+                }
+            }
+        }
+
         // Stops the algorithm
         public void EndCoroutine() {
 
@@ -536,7 +557,7 @@ namespace LandscaperAnts {
             StopCoroutine(antWork);
 
             // Updates the terrain with the last height values
-            terrain.terrainData.SetHeights(0, 0, grid.Heights);
+            terrain.terrainData.SetHeights(0, 0, grid.NormalHeights);
         }
 
         // Resets the heightmap

@@ -27,7 +27,6 @@ namespace LandscaperAnts {
         [SerializeField, Range(0, 1)] private float rho = 0.01f;            // Pheromone evaporation coefficient
         [SerializeField, Range(1, 5)] private int Q = 1;                    // Pheromone deposit coefficient
 
-        [SerializeField, Range(1, 100)] private int r = 1;                  // The Moore neighbourdhood coefficient
         [SerializeField] private float heightIncr = 0.0001f;                // The height value that ants remove from a given cell
         [SerializeField] private float pheromoneDeposit = 0.1f;             // The pheromone value that ants deposit on a given cell
 
@@ -495,9 +494,9 @@ namespace LandscaperAnts {
                 neighbours.Add(p);
 
             // Search for all neighbouring cells (Moore neighbourhood)
-            for (int dx = -r; dx <= r; dx++) {
+            for (int dx = -1; dx <= 1; dx++) {
 
-                for (int dy = -r; dy <= r; dy++) {
+                for (int dy = -1; dy <= 1; dy++) {
 
                     // Skip the cell if the coordinates match the extracted cell
                     if (dx == 0 && dy == 0)

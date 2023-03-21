@@ -391,53 +391,65 @@ namespace LandscaperAnts {
                 // Get the (moore) neighbours of the current cell (can include itself)
                 Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
 
-                // The cell the Ant will go to next
-                Vector2Int next;
-
                 // Check if the Ant is "carrying" food
-                // This first check simply changes the ant's state
-                if (ants[i].HasFood && ants[i].IsHome()) {
+                if (ants[i].HasFood) {
 
-                    // If the Ant gets back home, stop carrying food
-                    ants[i].HasFood = false;
+                    // Check if the Ant reached its home
+                    if (ants[i].IsHome()) {
 
-                } else if (!ants[i].HasFood && FoundFood(neighbours, out Food food)) {
+                        // If so, stop carrying food
+                        ants[i].HasFood = false;
 
-                    // Is there any food left?
-                    if (food.HasBitesLeft()) {
+                        // Decrement a manual value from the heightmap at the select cell
+                        grid.Heights[current.y, current.x] -= heightIncr;
+
+                    } else {
+
+                        // Normal Search Behaviour
+
+                        // Choose the next cell with the idea of coming back home
+                        Vector2Int next = GetNextPoint(current, ants[i].StartingCell, neighbours);
+
+                        // Increment the value of pheromone deposit on the selected cell
+                        float newPheromoneValue = grid.Pheromones[next.y, next.x] + pheromoneDeposit;
+
+                        // Apply the new value but clamp between a min and max
+                        grid.Pheromones[next.y, next.x] = Mathf.Clamp(newPheromoneValue, 0, maxPheromones);
+
+                        // Decrement a manual value from the heightmap at the select cell
+                        grid.Heights[next.y, next.x] -= heightIncr;
+
+                        // Update the ant's current cell
+                        ants[i].CurrentCell = next;
+                    }
+
+                } else {
+
+                    // Check if the Ant has found food and if any is left
+                    if (FoundFood(neighbours, out Food food) && 
+                        food.HasBitesLeft()) {
 
                         // "Take a bite" out of the food
                         food.TakeABite();
 
                         // Start carrying food
                         ants[i].HasFood = true;
+
+                        // Decrement a manual value from the heightmap at the select cell
+                        grid.Heights[current.y, current.x] -= heightIncr;
+
+                    } else {
+
+                        // Choose the next cell with the idea of aimlessly searching for food
+                        Vector2Int next = GetNextPoint(current, neighbours);
+
+                        // Decrement a manual value from the heightmap at the select cell
+                        grid.Heights[next.y, next.x] -= heightIncr;
+
+                        // Update the ant's current cell
+                        ants[i].CurrentCell = next;
                     }
                 }
-
-                // Check if the Ant is "carrying" food
-                // This second check allows the ant to perform a move
-                if (ants[i].HasFood) {
-
-                    // Choose the next cell with the idea of coming back home
-                    next = GetNextPoint(current, ants[i].StartingCell, neighbours);
-
-                    // Increment the value of pheromone deposit on the selected cell
-                    float newPheromoneValue = grid.Pheromones[next.y, next.x] + pheromoneDeposit;
-
-                    // Apply the new value but clamp between a min and max
-                    grid.Pheromones[next.y, next.x] = Mathf.Clamp(newPheromoneValue, 0, maxPheromones);
-
-                } else {
-
-                    // Choose the next cell with the idea of aimlessly searching for food
-                    next = GetNextPoint(current, neighbours);
-                }
-
-                // Decrement a manual value from the heightmap at the select cell
-                grid.Heights[next.y, next.x] -= heightIncr;
-
-                // Update the ant's current cell
-                ants[i].CurrentCell = next;
             }
         }
 

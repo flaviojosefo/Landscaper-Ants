@@ -27,11 +27,6 @@ namespace LandscaperAnts {
         [Tooltip("The dimensions of the grid")]
         private int baseDim = 513;
 
-        [SerializeField]
-        [Range(0f, 1f)]
-        [Tooltip("The initial pheromone levels on all grid elements")]
-        private float initPheromones = 0f;
-
         [Header("Display Settings")]
 
         [SerializeField]
@@ -88,24 +83,21 @@ namespace LandscaperAnts {
 
             pheromones = new float[baseDim, baseDim];
 
-            for (int i = 0; i < baseDim; i++) {
+            // Initiate terrain as non flat
+            if (!flatTerrain) {
 
-                for (int j = 0; j < baseDim; j++) {
+                for (int i = 0; i < baseDim; i++) {
 
-                    // Set initial height
-                    if (flatTerrain) {
-
-                        heights[i, j] = 0.0f;
-
-                    } else {
+                    for (int j = 0; j < baseDim; j++) {
 
                         heights[i, j] = Mathf.PerlinNoise(
+                                (10f * i) / baseDim,
+                                (10f * j) / baseDim) - 1.0f;
+
+                        normalHeights[i, j] = Mathf.PerlinNoise(
                             (10f * i) / baseDim,
                             (10f * j) / baseDim) - 1.0f;
                     }
-
-                    // Set initial pheromone amount
-                    pheromones[i, j] = initPheromones;
                 }
             }
         }

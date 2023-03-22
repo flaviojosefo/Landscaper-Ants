@@ -550,9 +550,9 @@ namespace LandscaperAnts {
 
                 for (int j = 0; j < grid.BaseDim; j++) {
 
-                    float offsetHeight = (grid.Heights[i, j] + offset) / offset;
+                    float normalizedHeight = (grid.Heights[i, j] + offset) / offset;
 
-                    grid.NormalHeights[i, j] = offsetHeight;
+                    grid.NormalHeights[i, j] = normalizedHeight;
                 }
             }
         }
@@ -581,15 +581,6 @@ namespace LandscaperAnts {
 
             // Create the heightmap
             float[,] heights = new float[texelSize, texelSize];
-
-            // Loop through all heightmap locations
-            for (int i = 0; i < texelSize; i++) {
-
-                for (int j = 0; j < texelSize; j++) {
-
-                    heights[i, j] = 1.0f;
-                }
-            }
 
             // Apply the flattened heightmap on the terrain
             terrain.terrainData.SetHeights(0, 0, heights);

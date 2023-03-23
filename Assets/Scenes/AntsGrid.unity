@@ -1494,14 +1494,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   antsInPlace: 0
   shuffleAnts: 1
-  nAnts: 500
+  nAnts: 50
   maxSteps: 10000
   pheromoneWeight: 1
   slopeWeight: 1
   directionWeight: 1
+  randomWeight: 0.5
   rho: 0.05
   Q: 1
-  r: 1
   heightIncr: 0.005
   pheromoneDeposit: 0.1
   maxPheromones: 1
@@ -1509,10 +1509,9 @@ MonoBehaviour:
   terrain: {fileID: 451495196}
   grid:
     flatTerrain: 1
-    foodAmount: 5
+    foodAmount: 30
     maxFoodBites: 5
     baseDim: 513
-    initPheromones: 0.01
     foodSprite: {fileID: 7786452733030419128, guid: f3669ae66df5e2e4aa9ab55d14708b33, type: 3}
     spritesParent: {fileID: 1627694049}
   stepsUI: {fileID: 901818752}

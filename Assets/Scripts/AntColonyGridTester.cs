@@ -23,6 +23,7 @@ namespace LandscaperAnts {
         [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;    // Pheromone weight used on cell selection
         [SerializeField, Range(0, 1)] private float slopeWeight = 1;        // Slope weight used on cell selection
         [SerializeField, Range(0, 1)] private float directionWeight = 1;    // Direction (to starting cell) weight used on cell selection
+        [SerializeField, Range(0, 1)] private float randomWeight = 1;       // Random weight used on cell selection
 
         [SerializeField, Range(0, 1)] private float rho = 0.01f;            // Pheromone evaporation coefficient
         [SerializeField, Range(1, 5)] private int Q = 1;                    // Pheromone deposit coefficient
@@ -53,12 +54,13 @@ namespace LandscaperAnts {
 
         //    // Main Variables
 
-        //    Vector2Int origin = new(7, 4);      // The point the Ant is standing on
-        //    Vector2Int destination = new(2, 4); // The Ant's destination
+        //    Vector2Int origin = new(209, 150);      // The point the Ant is standing on
+        //    //Vector2Int destination = new(2, 4); // The Ant's destination
 
-        //    float pheromoneInfluence = 1;       // The factor that increases pheromone influence in the overall percentage calculation
+        //    //float pheromoneInfluence = 1;       // The factor that increases pheromone influence in the overall percentage calculation
         //    float slopeInfluence = 1;           // The factor that increases slope influence in the overall percentage calculation
-        //    float directionInfluence = 1;       // The factor that increases direction influence in the overall percentage calculation
+        //    //float directionInfluence = 1;       // The factor that increases direction influence in the overall percentage calculation
+        //    float rndWeight = 1;
 
         //    // ORDER OF IMPORTANCE: Slope --> Pheromones --> Distance (?)
 
@@ -71,15 +73,15 @@ namespace LandscaperAnts {
         //    int neighboursAmount = neighbours.Length;
 
         //    // The neighbours' heights
-        //    float[] nHeights = { 1f,  // ORIGIN
-        //                         1f,  // F
-        //                         1f,  // D
-        //                         1f,  // A
-        //                         1f,  // G
-        //                         1f,  // B
-        //                         1f,  // H
-        //                         1f,  // E
-        //                         1f   // C
+        //    float[] nHeights = { -0.005f,  // ORIGIN
+        //                         0f,  // F
+        //                         0f,  // D
+        //                         0f,  // A
+        //                         0f,  // G
+        //                         -0.005f,  // B
+        //                         0f,  // H
+        //                         0f,  // E
+        //                         0f   // C
         //    };
 
         //    // The neighbours' pheromone level
@@ -94,22 +96,28 @@ namespace LandscaperAnts {
         //                            0.00f   // C
         //    };
 
+        //    grid.Pheromones[origin.y, origin.x] = nPheromones[0];
+        //    grid.Heights[origin.y, origin.x] = nHeights[0];
+
         //    // Fill Pheromone and height levels at the neighbours to simulate a "realtime scenario"
         //    for (int i = 0; i < neighboursAmount; i++) {
 
         //        Vector2Int n = neighbours[i];
 
-        //        grid.Pheromones[n.y, n.x] = nPheromones[i];
-        //        grid.Heights[n.y, n.x] = nHeights[i];
+        //        grid.Pheromones[n.y, n.x] = nPheromones[i + 1];
+        //        grid.Heights[n.y, n.x] = nHeights[i + 1];
         //    }
 
-        //    float[] pheromonePortions = new float[neighboursAmount];
+        //    UpdateHeights();
+
+        //    //float[] pheromonePortions = new float[neighboursAmount];
         //    float[] slopePortions = new float[neighboursAmount];
-        //    float[] directionPortions = new float[neighboursAmount];
+        //    //float[] directionPortions = new float[neighboursAmount];
+        //    float[] randomPortions = new float[neighboursAmount];
 
         //    // Denominator Calculation
 
-        //    Vector2Int mainDirection = destination - origin;
+        //    //Vector2Int mainDirection = destination - origin;
         //    //print(mainDirection);
 
         //    float denominator = 0;
@@ -119,19 +127,22 @@ namespace LandscaperAnts {
         //        Vector2Int n = neighbours[i];
 
         //        // Calculate direction and angle with [origin to destination] vector
-        //        Vector2Int direction = n - origin;
-        //        float angle = Vector2.Angle(mainDirection, direction);
+        //        //Vector2Int direction = n - origin;
+        //        //float angle = Vector2.Angle(mainDirection, direction);
 
-        //        directionPortions[i] = CalcDirectionPortion(angle, directionInfluence);
+        //        //pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneInfluence);
 
-        //        pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneInfluence);
+        //        slopePortions[i] = CalcSlopePortion(grid.NormalHeights[origin.y, origin.x], grid.NormalHeights[n.y, n.x], slopeInfluence);
 
-        //        slopePortions[i] = CalcSlopePortion(grid.Heights[origin.y, origin.x], grid.Heights[n.y, n.x], slopeInfluence);
+        //        //directionPortions[i] = CalcDirectionPortion(angle, directionInfluence);
+
+        //        randomPortions[i] = Random.value * rndWeight;
 
         //        denominator +=
-        //            directionPortions[i]
-        //            //pheromonePortions[i] +  
-        //            //slopePortions[i]
+        //            //directionPortions[i]
+        //            //pheromonePortions[i] +
+        //            slopePortions[i] +
+        //            randomPortions[i]
         //            ;
 
         //    }
@@ -145,22 +156,23 @@ namespace LandscaperAnts {
         //    for (int i = 0; i < neighboursAmount; i++) {
 
         //        float percentage = (
-        //            directionPortions[i] 
-        //            //pheromonePortions[i] + 
-        //            //slopePortions[i]
-        //            ) 
+        //            //directionPortions[i]
+        //            //pheromonePortions[i] +
+        //            slopePortions[i] +
+        //            randomPortions[i]
+        //            )
         //            / denominator;
 
         //        totalPercentage += percentage;
 
         //        nPerctgs[i] = (i, percentage);
 
-        //        print($"{neighbours[i]} | PH: {pheromonePortions[i]} | Percentage: {percentage}");
+        //        print($"Neighbour {i}: {neighbours[i]} | Slope: {slopePortions[i]} | Percentage: {percentage}");
         //    }
 
         //    Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
 
-        //    print(nextCell);
+        //    print($"Chosen: {nextCell}");
 
         //    print($"Total: {denominator} | Total Percentage: {totalPercentage}");
         //}
@@ -172,6 +184,7 @@ namespace LandscaperAnts {
 
             float[] pheromonePortions = new float[neighboursAmount];
             float[] slopePortions = new float[neighboursAmount];
+            float[] randomPortions = new float[neighboursAmount];
 
             // Calculate individual variable influences and save their sum
 
@@ -185,7 +198,9 @@ namespace LandscaperAnts {
 
                 slopePortions[i] = CalcSlopePortion(grid.NormalHeights[current.y, current.x], grid.NormalHeights[n.y, n.x], slopeWeight);
 
-                totalSum += pheromonePortions[i] + slopePortions[i];
+                randomPortions[i] = CalcRandomPortion(randomWeight);
+
+                totalSum += pheromonePortions[i] + slopePortions[i] + randomPortions[i];
             }
 
             // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
@@ -194,7 +209,7 @@ namespace LandscaperAnts {
 
             for (int i = 0; i < neighboursAmount; i++) {
 
-                float percentage = (pheromonePortions[i] + slopePortions[i]) / totalSum;
+                float percentage = (pheromonePortions[i] + slopePortions[i] + randomPortions[i]) / totalSum;
 
                 nPerctgs[i] = (i, percentage);
             }
@@ -270,6 +285,10 @@ namespace LandscaperAnts {
             return (1 - Mathf.Abs(to - from)) * weight;
         }
 
+        private float CalcRandomPortion(float weight) {
+            return Random.value * weight;
+        }
+
         // Choose a random member of a collection based on a roulette wheel operation
         private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {
 
@@ -343,6 +362,9 @@ namespace LandscaperAnts {
 
                 step++;
                 DisplayCurrentStep(step);
+
+                // Update the terrain's heightmap
+                terrain.terrainData.SetHeights(0, 0, grid.NormalHeights);
 
                 yield return null;
             }
@@ -550,7 +572,8 @@ namespace LandscaperAnts {
 
                 for (int j = 0; j < grid.BaseDim; j++) {
 
-                    float normalizedHeight = (grid.Heights[i, j] + offset) / offset;
+                    float normalizedHeight = grid.Heights[i, j] + offset; // offsetting
+                    normalizedHeight /= offset == 0 ? 1 : offset;         // normalization
 
                     grid.NormalHeights[i, j] = normalizedHeight;
                 }

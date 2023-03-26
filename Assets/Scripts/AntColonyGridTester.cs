@@ -11,14 +11,15 @@ namespace LandscaperAnts {
 
     public sealed class AntColonyGridTester : MonoBehaviour {
 
-        [Header("ACO Settings")]
+        [Header("Main Settings")]
 
         [SerializeField] private bool antsInPlace = true;                   // Should Ants be able to select the next cell as the one they're on?
-        [SerializeField] private bool shuffleAnts = false;                  // Should the Ants be shuffled when iterated?
+        [SerializeField] private bool shuffleAnts = false;                  // Should Ants be shuffled when iterated?
+        [SerializeField] private bool individualStart = false;              // Should Ants' starting position be randomly different between eachother?
 
-        [SerializeField, Range(1, 500)] private int nAnts = 2;               // The amount of Ants
+        [SerializeField, Range(1, 500)] private int nAnts = 2;              // The amount of Ants
 
-        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;    // The number of steps an Ant can perform
+        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;   // The number of steps an Ant can perform
 
         [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;    // Pheromone weight used on cell selection
         [SerializeField, Range(0, 1)] private float slopeWeight = 1;        // Slope weight used on cell selection
@@ -378,23 +379,44 @@ namespace LandscaperAnts {
         // Initiate Ant state (mainly their position)
         private void InitAnts() {
 
-            // The starting position for all ants
-            int xStart = Random.Range(0, grid.BaseDim);
-            int yStart = Random.Range(0, grid.BaseDim);
-
-            Vector2Int start = new(xStart, yStart);
-
             // Create the necessary ants
             ants = new TestAnt[nAnts];
 
-            for (int i = 0; i < nAnts; i++) {
+            // Check if ants start in separate cells or not
+            if (individualStart) {
 
-                ants[i] = new TestAnt(start);
+                for (int i = 0; i < nAnts; i++) {
+
+                    // The starting position for the current ant
+                    int xStart = Random.Range(0, grid.BaseDim);
+                    int yStart = Random.Range(0, grid.BaseDim);
+
+                    Vector2Int start = new(xStart, yStart);
+
+                    ants[i] = new TestAnt(start);
+
+                    DisplayHomeSprite(start);
+
+                    print($"Ant {i} started at {start}");
+                }
+
+            } else {
+
+                // The starting position for all ants
+                int xStart = Random.Range(0, grid.BaseDim);
+                int yStart = Random.Range(0, grid.BaseDim);
+
+                Vector2Int start = new(xStart, yStart);
+
+                for (int i = 0; i < nAnts; i++) {
+
+                    ants[i] = new TestAnt(start);
+                }
+
+                DisplayHomeSprite(start);
+
+                print($"Ants started at {start}");
             }
-
-            DisplayHomeSprite(start);
-
-            print($"Ants start at {start}");
         }
 
         // Update the Ants' status

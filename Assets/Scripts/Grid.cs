@@ -24,6 +24,10 @@ namespace LandscaperAnts {
         private int maxFoodBites = 10;
 
         [SerializeField]
+        [Tooltip("The max terrain height in UNITS")]
+        private Vector3 terrainSize = new(10, 5, 10);
+
+        [SerializeField]
         [Tooltip("The dimensions of the grid")]
         private int baseDim = 513;
 
@@ -39,15 +43,13 @@ namespace LandscaperAnts {
         private float[,] heights;        // The height values on all elements of the grid
         private float[,] pheromones;     // The pheromones values on all elements of the grid
 
-        private float[,] normalHeights;                 // Testing for translated/normalized values
-
         public int BaseDim => baseDim;
+        public Vector3 TerrainSize => terrainSize;
+        public float MinHeight { get; set; }
 
         public Food[] Foods => foods;
         public float[,] Heights => heights;
         public float[,] Pheromones => pheromones;
-
-        public float[,] NormalHeights => normalHeights; // Testing for translated/normalized values
 
         // Setup all grid variables
         public void Generate() {
@@ -79,7 +81,6 @@ namespace LandscaperAnts {
         private void CreateMatrices() {
 
             heights = new float[baseDim, baseDim];
-            normalHeights = new float[baseDim, baseDim];
 
             pheromones = new float[baseDim, baseDim];
 
@@ -93,10 +94,6 @@ namespace LandscaperAnts {
                         heights[i, j] = Mathf.PerlinNoise(
                                 (10f * i) / baseDim,
                                 (10f * j) / baseDim) - 1.0f;
-
-                        normalHeights[i, j] = Mathf.PerlinNoise(
-                            (10f * i) / baseDim,
-                            (10f * j) / baseDim) - 1.0f;
                     }
                 }
             }
@@ -121,6 +118,30 @@ namespace LandscaperAnts {
             return neighbours;
         }
 
+        // Returns the minimum current height 
+        public float GetMinHeight() {
+
+            // The value to be returned
+            float min = float.MaxValue;
+
+            // Loop through the heightmap as a 1D array
+            for (int i = 0; i < baseDim * baseDim; i++) {
+
+                // Get the x and y coordinates based on the current index
+                int x = i % baseDim;
+                int y = i / baseDim;
+
+                // Get the float at the above coordinates
+                float current = heights[y, x];
+
+                // Update the min value if the current float is lower
+                if (current < min)
+                    min = current;
+            }
+
+            return min;
+        }
+
         public void ResetMatrices() => CreateMatrices();
 
         // Assumes the terrain is in the center of the 3D world
@@ -128,7 +149,7 @@ namespace LandscaperAnts {
 
             return new() {
                 x = ((texel.x / (float)baseDim) * 10f) - 5,
-                y = 1.01f,
+                y = 0.01f,
                 z = ((texel.y / (float)baseDim) * 10f) - 5
             };
         }

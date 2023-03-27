@@ -1457,7 +1457,7 @@ GameObject:
   - component: {fileID: 1913996898}
   - component: {fileID: 1913996899}
   m_Layer: 0
-  m_Name: ACO_Grid
+  m_Name: Ants_Grid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1494,23 +1494,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   antsInPlace: 0
   shuffleAnts: 1
-  nAnts: 50
+  individualStart: 1
+  nAnts: 500
   maxSteps: 10000
   pheromoneWeight: 1
   slopeWeight: 1
   directionWeight: 1
   randomWeight: 0.5
   rho: 0.05
-  Q: 1
-  heightIncr: 0.005
-  pheromoneDeposit: 0.1
+  heightIncr: 0.02
+  pheromoneDeposit: 0.5
   maxPheromones: 1
   maxSlope: 0.9
   terrain: {fileID: 451495196}
   grid:
     flatTerrain: 1
-    foodAmount: 30
+    foodAmount: 100
     maxFoodBites: 5
+    terrainSize: {x: 10, y: 5, z: 10}
     baseDim: 513
     foodSprite: {fileID: 7786452733030419128, guid: f3669ae66df5e2e4aa9ab55d14708b33, type: 3}
     spritesParent: {fileID: 1627694049}

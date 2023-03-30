@@ -1495,7 +1495,7 @@ MonoBehaviour:
   antsInPlace: 0
   shuffleAnts: 1
   individualStart: 1
-  nAnts: 500
+  nAnts: 50
   maxSteps: 10000
   pheromoneWeight: 1
   slopeWeight: 1
@@ -1503,7 +1503,7 @@ MonoBehaviour:
   randomWeight: 0.5
   rho: 0.05
   heightIncr: 0.02
-  pheromoneDeposit: 0.5
+  pheromoneDeposit: 0.8
   maxPheromones: 1
   maxSlope: 0.9
   terrain: {fileID: 451495196}

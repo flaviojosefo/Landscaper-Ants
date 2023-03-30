@@ -60,7 +60,7 @@ namespace LandscaperAnts {
         //    //float pheromoneInfluence = 1;       // The factor that increases pheromone influence in the overall percentage calculation
         //    float slopeInfluence = 1;           // The factor that increases slope influence in the overall percentage calculation
         //    //float directionInfluence = 1;       // The factor that increases direction influence in the overall percentage calculation
-        //    float rndWeight = 1;
+        //    //float rndWeight = 1;
 
         //    // ORDER OF IMPORTANCE: Slope --> Pheromones --> Distance (?)
 
@@ -111,7 +111,7 @@ namespace LandscaperAnts {
         //    //float[] pheromonePortions = new float[neighboursAmount];
         //    float[] slopePortions = new float[neighboursAmount];
         //    //float[] directionPortions = new float[neighboursAmount];
-        //    float[] randomPortions = new float[neighboursAmount];
+        //    //float[] randomPortions = new float[neighboursAmount];
 
         //    // Denominator Calculation
 
@@ -138,17 +138,17 @@ namespace LandscaperAnts {
         //        float neighbourHeight = grid.Heights[n.y, n.x] + offset;
         //        neighbourHeight /= (offset == 0 ? 1 : offset);
 
-        //        slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
+        //        slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeInfluence);
 
         //        //directionPortions[i] = CalcDirectionPortion(angle, directionInfluence);
 
-        //        randomPortions[i] = Random.value * rndWeight;
+        //        //randomPortions[i] = Random.value * rndWeight;
 
         //        denominator +=
         //            //directionPortions[i]
         //            //pheromonePortions[i] +
-        //            slopePortions[i] +
-        //            randomPortions[i]
+        //            slopePortions[i]
+        //            //randomPortions[i]
         //            ;
 
         //    }
@@ -164,8 +164,8 @@ namespace LandscaperAnts {
         //        float percentage = (
         //            //directionPortions[i]
         //            //pheromonePortions[i] +
-        //            slopePortions[i] +
-        //            randomPortions[i]
+        //            slopePortions[i]
+        //            //randomPortions[i]
         //            )
         //            / denominator;
 
@@ -384,13 +384,13 @@ namespace LandscaperAnts {
                 step++;
                 DisplayCurrentStep(step);
 
-                UpdateHeightmap();
+                UpdateTerrain();
 
                 yield return null;
             }
 
             // Update the terrain's heightmap
-            UpdateHeightmap();
+            UpdateTerrain();
 
             antWork = null;
         }
@@ -505,16 +505,70 @@ namespace LandscaperAnts {
                     }
                 }
 
-                // Decrement a manual value from the heightmap at the select cell
-                grid.Heights[next.y, next.x] -= heightIncr;
-                
-                // Update the minimum height, if lower than the last min value
-                if (grid.Heights[next.y, next.x] < grid.MinHeight)
-                    grid.MinHeight = grid.Heights[next.y, next.x];
+                // Have the Ant "dig" the terrain
+                Dig(current, next);
 
                 // Update the ant's current cell
                 ants[i].CurrentCell = next;
             }
+        }
+
+        private void Dig(Vector2Int current, Vector2Int next) {
+
+            // Decrement a manual value from the heightmap at the select cell
+            grid.Heights[next.y, next.x] -= heightIncr;
+
+            Vector2Int direction = next - current;
+
+            // Chosen cells (C + A + B + C + D)
+            //  A C X
+            //  C N X
+            //  B D X
+
+            // Check if the ant is moving horizontally, vertically or diagonally
+            if (direction.x == 0 || direction.y == 0) {
+
+                Vector2Int perpendicular = new(-direction.y, direction.x);
+
+                for (int i = 0; i < 2; i++) {
+
+                    Vector2Int f1 = (current + perpendicular) + (i * direction);
+                    Vector2Int f2 = (current - perpendicular) + (i * direction);
+
+                    float percentage = 0.2f - (0.2f * i * 0.5f);
+
+                    if (f1.x >= 0 && f1.y >= 0 && f1.x < grid.BaseDim && f1.y < grid.BaseDim)
+                        grid.Heights[f1.y, f1.x] += heightIncr * percentage;
+
+                    if (f2.x >= 0 && f2.y >= 0 && f2.x < grid.BaseDim && f2.y < grid.BaseDim)
+                        grid.Heights[f2.y, f2.x] += heightIncr * percentage;
+                }
+
+            } else {
+
+                Vector2Int horizontal = new(direction.x, 0);
+                Vector2Int vertical = new(0, direction.y);
+
+                for (int i = 0; i < 2; i++) {
+
+                    Vector2Int f1 = current + (horizontal * (i + 1));
+                    Vector2Int f2 = current + (vertical * (i + 1));
+
+                    float percentage = 0.2f - (0.2f * i * 0.5f);
+
+                    if (f1.x >= 0 && f1.y >= 0 && f1.x < grid.BaseDim && f1.y < grid.BaseDim)
+                        grid.Heights[f1.y, f1.x] += heightIncr * percentage;
+
+                    if (f2.x >= 0 && f2.y >= 0 && f2.x < grid.BaseDim && f2.y < grid.BaseDim)
+                        grid.Heights[f2.y, f2.x] += heightIncr * percentage;
+                }
+            }
+
+            grid.Heights[current.y, current.x] -= heightIncr * 0.4f;
+
+            // Update the minimum height, if lower than the last min value
+            if (grid.Heights[next.y, next.x] < grid.MinHeight)
+                grid.MinHeight = grid.Heights[next.y, next.x];
         }
 
         private void UpdatePheromones() {
@@ -596,7 +650,7 @@ namespace LandscaperAnts {
         }
 
         // Updates the terrain's heightmap
-        private void UpdateHeightmap() {
+        private void UpdateTerrain() {
 
             // Get the value for translation
             float offset = Mathf.Abs(grid.MinHeight);
@@ -629,7 +683,7 @@ namespace LandscaperAnts {
             // Stops the algorithm's coroutine
             StopCoroutine(antWork);
 
-            UpdateHeightmap();
+            UpdateTerrain();
         }
 
         // Resets the heightmap

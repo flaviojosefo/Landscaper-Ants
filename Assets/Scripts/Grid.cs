@@ -15,7 +15,7 @@ namespace LandscaperAnts {
         private bool flatTerrain = true;
 
         [SerializeField]
-        [Range(2, 100)]
+        [Range(1, 100)]
         [Tooltip("The amount of food to generate")]
         private int foodAmount = 4;
 
@@ -93,7 +93,7 @@ namespace LandscaperAnts {
 
                         heights[i, j] = Mathf.PerlinNoise(
                                 (10f * i) / baseDim,
-                                (10f * j) / baseDim) - 1.0f;
+                                (10f * j) / baseDim);
                     }
                 }
             }

@@ -564,7 +564,7 @@ namespace LandscaperAnts {
                 }
             }
 
-            grid.Heights[current.y, current.x] -= heightIncr * 0.4f;
+            grid.Heights[current.y, current.x] += heightIncr * 0.4f;
 
             // Update the minimum height, if lower than the last min value
             if (grid.Heights[next.y, next.x] < grid.MinHeight)

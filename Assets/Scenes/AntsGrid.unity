@@ -1498,9 +1498,9 @@ MonoBehaviour:
   nAnts: 50
   maxSteps: 10000
   pheromoneWeight: 1
-  slopeWeight: 1
+  slopeWeight: 0.8
   directionWeight: 1
-  randomWeight: 0.5
+  randomWeight: 0.1
   rho: 0.05
   heightIncr: 0.02
   pheromoneDeposit: 0.8
@@ -1509,8 +1509,8 @@ MonoBehaviour:
   terrain: {fileID: 451495196}
   grid:
     flatTerrain: 1
-    foodAmount: 100
-    maxFoodBites: 5
+    foodAmount: 5
+    maxFoodBites: 40
     terrainSize: {x: 10, y: 5, z: 10}
     baseDim: 513
     foodSprite: {fileID: 7786452733030419128, guid: f3669ae66df5e2e4aa9ab55d14708b33, type: 3}

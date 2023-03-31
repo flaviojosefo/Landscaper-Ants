@@ -1495,7 +1495,7 @@ MonoBehaviour:
   antsInPlace: 0
   shuffleAnts: 1
   individualStart: 1
-  nAnts: 50
+  nAnts: 250
   maxSteps: 10000
   pheromoneWeight: 1
   slopeWeight: 0.8

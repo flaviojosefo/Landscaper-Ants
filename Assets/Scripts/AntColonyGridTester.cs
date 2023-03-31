@@ -395,11 +395,22 @@ namespace LandscaperAnts {
             antWork = null;
         }
 
+        private Vector2Int GetRandomPos() {
+
+            int x = Random.Range(0, grid.BaseDim);
+            int y = Random.Range(0, grid.BaseDim);
+
+            return new(x, y);
+        }
+
         // Initiate Ant state (mainly their position)
         private void InitAnts() {
 
             // Create the necessary ants
             ants = new TestAnt[nAnts];
+
+            // The ants' colony position
+            Vector2Int colony = GetRandomPos();
 
             // Check if ants start in separate cells or not
             if (individualStart) {
@@ -407,35 +418,22 @@ namespace LandscaperAnts {
                 for (int i = 0; i < nAnts; i++) {
 
                     // The starting position for the current ant
-                    int xStart = Random.Range(0, grid.BaseDim);
-                    int yStart = Random.Range(0, grid.BaseDim);
+                    Vector2Int start = GetRandomPos();
 
-                    Vector2Int start = new(xStart, yStart);
-
-                    ants[i] = new TestAnt(start);
-
-                    //DisplayHomeSprite(start);
-
-                    //print($"Ant {i} started at {start}");
+                    ants[i] = new TestAnt(colony, start);
                 }
 
             } else {
 
-                // The starting position for all ants
-                int xStart = Random.Range(0, grid.BaseDim);
-                int yStart = Random.Range(0, grid.BaseDim);
-
-                Vector2Int start = new(xStart, yStart);
-
                 for (int i = 0; i < nAnts; i++) {
 
-                    ants[i] = new TestAnt(start);
+                    ants[i] = new TestAnt(colony);
                 }
-
-                DisplayHomeSprite(start);
-
-                print($"Ants started at {start}");
             }
+
+            DisplayHomeSprite(colony);
+
+            print($"Ants' colony is at {colony}");
         }
 
         // Update the Ants' status
@@ -474,7 +472,7 @@ namespace LandscaperAnts {
                         // Normal Search Behaviour
 
                         // Choose the next cell with the idea of coming back home
-                        next = GetNextPoint(current, ants[i].StartingCell, neighbours);
+                        next = GetNextPoint(current, ants[i].ColonyCell, neighbours);
 
                         // Increment the value of pheromone deposit on the selected cell
                         float newPheromoneValue = grid.Pheromones[next.y, next.x] + pheromoneDeposit;

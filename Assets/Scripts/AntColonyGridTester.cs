@@ -50,299 +50,6 @@ namespace LandscaperAnts {
 
         private Coroutine antWork;                                          // The coroutine for the algorithm's main loop (1 iteration/step per frame)
 
-        //private void Start() {
-
-        //    // ----- TEST PERCENTAGE SPREADING OF NEIGHBOURS -----
-
-        //    // Main Variables
-
-        //    Vector2Int origin = new(209, 150);      // The point the Ant is standing on
-        //    //Vector2Int destination = new(2, 4); // The Ant's destination
-
-        //    //float pheromoneInfluence = 1;       // The factor that increases pheromone influence in the overall percentage calculation
-        //    float slopeInfluence = 1;           // The factor that increases slope influence in the overall percentage calculation
-        //    //float directionInfluence = 1;       // The factor that increases direction influence in the overall percentage calculation
-        //    //float rndWeight = 1;
-
-        //    // ORDER OF IMPORTANCE: Slope --> Pheromones --> Distance (?)
-
-        //    // Generate a new grid
-        //    grid.Generate();
-
-        //    // Get the origin's neighbouring points
-        //    Vector2Int[] neighbours = GetMooreNeighbours(origin, false);
-
-        //    int neighboursAmount = neighbours.Length;
-
-        //    // The neighbours' heights
-        //    float[] nHeights = { -0.005f,  // ORIGIN
-        //                         0f,  // F
-        //                         0f,  // D
-        //                         0f,  // A
-        //                         0f,  // G
-        //                         -0.005f,  // B
-        //                         0f,  // H
-        //                         0f,  // E
-        //                         0f   // C
-        //    };
-
-        //    // The neighbours' pheromone level
-        //    float[] nPheromones = { 0.00f,  // ORIGIN
-        //                            0.00f,  // F
-        //                            0.00f,  // D
-        //                            0.00f,  // A
-        //                            0.00f,  // G
-        //                            0.00f,  // B
-        //                            0.00f,  // H
-        //                            0.00f,  // E
-        //                            0.00f   // C
-        //    };
-
-        //    grid.Pheromones[origin.y, origin.x] = nPheromones[0];
-        //    grid.Heights[origin.y, origin.x] = nHeights[0];
-
-        //    // Fill Pheromone and height levels at the neighbours to simulate a "realtime scenario"
-        //    for (int i = 0; i < neighboursAmount; i++) {
-
-        //        Vector2Int n = neighbours[i];
-
-        //        grid.Pheromones[n.y, n.x] = nPheromones[i + 1];
-        //        grid.Heights[n.y, n.x] = nHeights[i + 1];
-        //    }
-
-        //    //float[] pheromonePortions = new float[neighboursAmount];
-        //    float[] slopePortions = new float[neighboursAmount];
-        //    //float[] directionPortions = new float[neighboursAmount];
-        //    //float[] randomPortions = new float[neighboursAmount];
-
-        //    // Denominator Calculation
-
-        //    //Vector2Int mainDirection = destination - origin;
-        //    //print(mainDirection);
-
-        //    float offset = -grid.MinHeight;
-
-        //    float currentHeight = grid.Heights[origin.y, origin.x] + offset;
-        //    currentHeight /= (offset == 0 ? 1 : offset);
-
-        //    float denominator = 0;
-
-        //    for (int i = 0; i < neighboursAmount; i++) {
-
-        //        Vector2Int n = neighbours[i];
-
-        //        // Calculate direction and angle with [origin to destination] vector
-        //        //Vector2Int direction = n - origin;
-        //        //float angle = Vector2.Angle(mainDirection, direction);
-
-        //        //pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneInfluence);
-
-        //        float neighbourHeight = grid.Heights[n.y, n.x] + offset;
-        //        neighbourHeight /= (offset == 0 ? 1 : offset);
-
-        //        slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeInfluence);
-
-        //        //directionPortions[i] = CalcDirectionPortion(angle, directionInfluence);
-
-        //        //randomPortions[i] = Random.value * rndWeight;
-
-        //        denominator +=
-        //            //directionPortions[i]
-        //            //pheromonePortions[i] +
-        //            slopePortions[i]
-        //            //randomPortions[i]
-        //            ;
-
-        //    }
-
-        //    // Nominator Calculation
-
-        //    float totalPercentage = 0;
-
-        //    (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
-
-        //    for (int i = 0; i < neighboursAmount; i++) {
-
-        //        float percentage = (
-        //            //directionPortions[i]
-        //            //pheromonePortions[i] +
-        //            slopePortions[i]
-        //            //randomPortions[i]
-        //            )
-        //            / denominator;
-
-        //        totalPercentage += percentage;
-
-        //        nPerctgs[i] = (i, percentage);
-
-        //        print($"Neighbour {i}: {neighbours[i]} | Slope: {slopePortions[i]} | Percentage: {percentage}");
-        //    }
-
-        //    Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
-
-        //    print($"Chosen: {nextCell}");
-
-        //    print($"Total: {denominator} | Total Percentage: {totalPercentage}");
-        //}
-
-        // Returns a (pheromone and slope influenced) point for the Ant to move towards
-        private Vector2Int GetNextPoint(Vector2Int current, Vector2Int[] neighbours) {
-
-            int neighboursAmount = neighbours.Length;
-
-            float[] pheromonePortions = new float[neighboursAmount];
-            float[] slopePortions = new float[neighboursAmount];
-            float[] randomPortions = new float[neighboursAmount];
-
-            float offset = Mathf.Abs(grid.MinHeight);
-
-            float currentHeight = grid.Heights[current.y, current.x] + offset;
-            currentHeight /= (offset == 0 ? 1 : offset);
-
-            // Calculate individual variable influences and save their sum
-
-            float totalSum = 0;
-
-            for (int i = 0; i < neighboursAmount; i++) {
-
-                Vector2Int n = neighbours[i];
-
-                pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
-
-                float neighbourHeight = grid.Heights[n.y, n.x] + offset;
-                neighbourHeight /= (offset == 0 ? 1 : offset);
-
-                slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
-
-                randomPortions[i] = CalcRandomPortion(randomWeight);
-
-                totalSum += pheromonePortions[i] + slopePortions[i] + randomPortions[i];
-            }
-
-            // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
-
-            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
-
-            for (int i = 0; i < neighboursAmount; i++) {
-
-                float percentage = (pheromonePortions[i] + slopePortions[i] + randomPortions[i]) / totalSum;
-
-                nPerctgs[i] = (i, percentage);
-            }
-
-            // Randomly select the next cell
-            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
-
-            return nextCell;
-        }
-
-        // Returns a (slope and direction [to destination] influenced) point for the Ant to move towards
-        private Vector2Int GetNextPoint(Vector2Int current, Vector2Int destination, Vector2Int[] neighbours) {
-
-            int neighboursAmount = neighbours.Length;
-
-            float[] slopePortions = new float[neighboursAmount];
-            float[] directionPortions = new float[neighboursAmount];
-
-            float offset = Mathf.Abs(grid.MinHeight);
-
-            float currentHeight = grid.Heights[current.y, current.x] + offset;
-            currentHeight /= (offset == 0 ? 1 : offset);
-
-            Vector2Int mainDirection = destination - current;
-
-            // Calculate individual variable influences and save their sum
-
-            float totalSum = 0;
-
-            for (int i = 0; i < neighboursAmount; i++) {
-
-                Vector2Int n = neighbours[i];
-
-                float neighbourHeight = grid.Heights[n.y, n.x] + offset;
-                neighbourHeight /= (offset == 0 ? 1 : offset);
-
-                slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
-
-                // Calculate direction and angle with [origin to destination] vector
-                Vector2Int direction = n - current;
-                float angle = Vector2.Angle(mainDirection, direction);
-
-                directionPortions[i] = CalcDirectionPortion(angle, directionWeight);
-
-                totalSum += slopePortions[i] + directionPortions[i];
-            }
-
-            // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
-
-            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
-
-            for (int i = 0; i < neighboursAmount; i++) {
-
-                float percentage = (slopePortions[i] + directionPortions[i]) / totalSum;
-
-                nPerctgs[i] = (i, percentage);
-            }
-
-            // Randomly select the next cell
-            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
-
-            return nextCell;
-        }
-
-        // Graphics with the functions present below
-        // https://www.desmos.com/calculator/gc1pygvebj
-
-        private float CalcDirectionPortion(float angle, float weight) {
-
-            return (1 - (angle / 180f)) * weight;
-        }
-
-        private float CalcPheromonePortion(float ph, float weight) {
-
-            return (ph / maxPheromones) * weight;
-        }
-
-        private float CalcSlopePortion(float from, float to, float weight) {
-
-            // The terrain must go from height of 0-1
-            return (1 - Mathf.Abs(to - from)) * weight;
-        }
-
-        private float CalcRandomPortion(float weight) {
-            return Random.value * weight;
-        }
-
-        // Choose a random member of a collection based on a roulette wheel operation
-        private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {
-
-            // ##### ROULETTE WHEEL #####
-
-            probabilities = probabilities.OrderBy(x => x.percentage).ToArray();
-
-            // Calculate cumulative sum
-            float[] cumulSum = new float[probabilities.Length + 1];
-
-            for (int i = 0; i < probabilities.Length; i++) {
-
-                cumulSum[i + 1] = cumulSum[i] + probabilities[i].percentage;
-            }
-
-            // Get random value between 0 and 1 (both inclusive)
-            float rnd = Random.value;
-
-            for (int i = 0; i < cumulSum.Length - 1; i++) {
-
-                if ((rnd >= cumulSum[i]) && (rnd < cumulSum[i + 1])) {
-
-                    return collection[probabilities[i].index];
-                }
-            }
-
-            // Choose the last cell if cumulative sum didn't achieve 1
-            return collection[probabilities[^1].index];
-        }
-
         // Method to generate a new graph
         public void GenerateGraph() {
 
@@ -571,6 +278,164 @@ namespace LandscaperAnts {
             // Update the minimum height, if lower than the last min value
             if (grid.Heights[next.y, next.x] < grid.MinHeight)
                 grid.MinHeight = grid.Heights[next.y, next.x];
+        }
+
+        // Returns a (pheromone and slope influenced) point for the Ant to move towards
+        private Vector2Int GetNextPoint(Vector2Int current, Vector2Int[] neighbours) {
+
+            int neighboursAmount = neighbours.Length;
+
+            float[] pheromonePortions = new float[neighboursAmount];
+            float[] slopePortions = new float[neighboursAmount];
+            float[] randomPortions = new float[neighboursAmount];
+
+            float offset = Mathf.Abs(grid.MinHeight);
+
+            float currentHeight = grid.Heights[current.y, current.x] + offset;
+            currentHeight /= (offset == 0 ? 1 : offset);
+
+            // Calculate individual variable influences and save their sum
+
+            float totalSum = 0;
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
+
+                float neighbourHeight = grid.Heights[n.y, n.x] + offset;
+                neighbourHeight /= (offset == 0 ? 1 : offset);
+
+                slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
+
+                randomPortions[i] = CalcRandomPortion(randomWeight);
+
+                totalSum += pheromonePortions[i] + slopePortions[i] + randomPortions[i];
+            }
+
+            // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
+
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                float percentage = (pheromonePortions[i] + slopePortions[i] + randomPortions[i]) / totalSum;
+
+                nPerctgs[i] = (i, percentage);
+            }
+
+            // Randomly select the next cell
+            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
+
+            return nextCell;
+        }
+
+        // Returns a (slope and direction [to destination] influenced) point for the Ant to move towards
+        private Vector2Int GetNextPoint(Vector2Int current, Vector2Int destination, Vector2Int[] neighbours) {
+
+            int neighboursAmount = neighbours.Length;
+
+            float[] slopePortions = new float[neighboursAmount];
+            float[] directionPortions = new float[neighboursAmount];
+
+            float offset = Mathf.Abs(grid.MinHeight);
+
+            float currentHeight = grid.Heights[current.y, current.x] + offset;
+            currentHeight /= (offset == 0 ? 1 : offset);
+
+            Vector2Int mainDirection = destination - current;
+
+            // Calculate individual variable influences and save their sum
+
+            float totalSum = 0;
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                float neighbourHeight = grid.Heights[n.y, n.x] + offset;
+                neighbourHeight /= (offset == 0 ? 1 : offset);
+
+                slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
+
+                // Calculate direction and angle with [origin to destination] vector
+                Vector2Int direction = n - current;
+                float angle = Vector2.Angle(mainDirection, direction);
+
+                directionPortions[i] = CalcDirectionPortion(angle, directionWeight);
+
+                totalSum += slopePortions[i] + directionPortions[i];
+            }
+
+            // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
+
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                float percentage = (slopePortions[i] + directionPortions[i]) / totalSum;
+
+                nPerctgs[i] = (i, percentage);
+            }
+
+            // Randomly select the next cell
+            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
+
+            return nextCell;
+        }
+
+        // Graphics with the functions present below
+        // https://www.desmos.com/calculator/gc1pygvebj
+
+        private float CalcDirectionPortion(float angle, float weight) {
+
+            return (1 - (angle / 180f)) * weight;
+        }
+
+        private float CalcPheromonePortion(float ph, float weight) {
+
+            return (ph / maxPheromones) * weight;
+        }
+
+        private float CalcSlopePortion(float from, float to, float weight) {
+
+            // The terrain must go from height of 0-1
+            return (1 - Mathf.Abs(to - from)) * weight;
+        }
+
+        private float CalcRandomPortion(float weight) {
+            return Random.value * weight;
+        }
+
+        // Choose a random member of a collection based on a roulette wheel operation
+        private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {
+
+            // ##### ROULETTE WHEEL #####
+
+            probabilities = probabilities.OrderBy(x => x.percentage).ToArray();
+
+            // Calculate cumulative sum
+            float[] cumulSum = new float[probabilities.Length + 1];
+
+            for (int i = 0; i < probabilities.Length; i++) {
+
+                cumulSum[i + 1] = cumulSum[i] + probabilities[i].percentage;
+            }
+
+            // Get random value between 0 and 1 (both inclusive)
+            float rnd = Random.value;
+
+            for (int i = 0; i < cumulSum.Length - 1; i++) {
+
+                if ((rnd >= cumulSum[i]) && (rnd < cumulSum[i + 1])) {
+
+                    return collection[probabilities[i].index];
+                }
+            }
+
+            // Choose the last cell if cumulative sum didn't achieve 1
+            return collection[probabilities[^1].index];
         }
 
         private void UpdatePheromones() {

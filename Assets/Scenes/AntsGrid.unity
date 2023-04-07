@@ -1504,7 +1504,6 @@ MonoBehaviour:
   rho: 0.05
   foodHeightIncr: 0.05
   noFoodHeightIncr: 0.002
-  heightIncr: 0.02
   pheromoneDeposit: 0.8
   maxPheromones: 1
   maxSlope: 0.9
@@ -1605,7 +1604,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1913996899}
         m_TargetAssemblyTypeName: LandscaperAnts.AntColonyGridTester, Assembly-CSharp
-        m_MethodName: GenerateGraph
+        m_MethodName: GenerateGrid
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1617,7 +1616,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 1913996899}
         m_TargetAssemblyTypeName: LandscaperAnts.AntColonyGridTester, Assembly-CSharp
-        m_MethodName: GenerateTrail
+        m_MethodName: StartAnts
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

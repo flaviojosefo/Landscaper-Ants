@@ -51,7 +51,7 @@ namespace LandscaperAnts {
         private Coroutine antWork;                                          // The coroutine for the algorithm's main loop (1 iteration/step per frame)
 
         // Method to generate a new graph
-        public void GenerateGraph() {
+        public void GenerateGrid() {
 
             // Return if the algorithm is executing
             if (antWork is not null)
@@ -66,13 +66,12 @@ namespace LandscaperAnts {
         }
 
         // Method to generate trails
-        public void GenerateTrail() {
+        public void StartAnts() {
 
             if (antWork is not null && grid.Foods is null)
                 return;
 
-            grid.ResetMatrices();
-            print("----- Started ACO -----");
+            print("----- Algorithm STARTED -----");
             antWork = StartCoroutine(Run());
         }
 
@@ -102,6 +101,9 @@ namespace LandscaperAnts {
             UpdateTerrain();
 
             antWork = null;
+
+            // Print a final message
+            print("----- Algorithm ENDED -----");
         }
 
         private Vector2Int GetRandomPos() {
@@ -551,6 +553,9 @@ namespace LandscaperAnts {
             StopCoroutine(antWork);
 
             UpdateTerrain();
+
+            // Print a final message
+            print("----- Algorithm STOPPED -----");
         }
 
         // Resets the heightmap

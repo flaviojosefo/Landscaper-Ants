@@ -28,7 +28,9 @@ namespace LandscaperAnts {
 
         [SerializeField, Range(0, 1)] private float rho = 0.01f;            // Pheromone evaporation coefficient
 
-        [SerializeField] private float heightIncr = 0.0001f;                // The height value that ants remove from a given cell
+        [SerializeField] private float foodHeightIncr = 0.02f;              // The height value that ants that have food remove from a given cell
+        [SerializeField] private float noFoodHeightIncr = 0.01f;            // The height value that ants that DON'T have food remove from a given cell
+
         [SerializeField] private float pheromoneDeposit = 0.1f;             // The pheromone value that ants deposit on a given cell
 
         [SerializeField, Range(1, 10)] private float maxPheromones = 1;     // The max amount of pheromones allowed to be on any given cell
@@ -384,7 +386,7 @@ namespace LandscaperAnts {
                 step++;
                 DisplayCurrentStep(step);
 
-                UpdateTerrain();
+                //UpdateTerrain();
 
                 yield return null;
             }
@@ -420,14 +422,14 @@ namespace LandscaperAnts {
                     // The starting position for the current ant
                     Vector2Int start = GetRandomPos();
 
-                    ants[i] = new TestAnt(colony, start);
+                    ants[i] = new(colony, start);
                 }
 
             } else {
 
                 for (int i = 0; i < nAnts; i++) {
 
-                    ants[i] = new TestAnt(colony);
+                    ants[i] = new(colony);
                 }
             }
 
@@ -504,17 +506,19 @@ namespace LandscaperAnts {
                 }
 
                 // Have the Ant "dig" the terrain
-                Dig(current, next);
+                Dig(current, next, i);
 
                 // Update the ant's current cell
                 ants[i].CurrentCell = next;
             }
         }
 
-        private void Dig(Vector2Int current, Vector2Int next) {
+        private void Dig(Vector2Int current, Vector2Int next, int index) {
+
+            float digAmount = ants[index].HasFood ? foodHeightIncr : noFoodHeightIncr;
 
             // Decrement a manual value from the heightmap at the select cell
-            grid.Heights[next.y, next.x] -= heightIncr;
+            grid.Heights[next.y, next.x] -= digAmount;
 
             Vector2Int direction = next - current;
 
@@ -536,10 +540,10 @@ namespace LandscaperAnts {
                     float percentage = 0.2f - (0.2f * i * 0.5f);
 
                     if (f1.x >= 0 && f1.y >= 0 && f1.x < grid.BaseDim && f1.y < grid.BaseDim)
-                        grid.Heights[f1.y, f1.x] += heightIncr * percentage;
+                        grid.Heights[f1.y, f1.x] += digAmount * percentage;
 
                     if (f2.x >= 0 && f2.y >= 0 && f2.x < grid.BaseDim && f2.y < grid.BaseDim)
-                        grid.Heights[f2.y, f2.x] += heightIncr * percentage;
+                        grid.Heights[f2.y, f2.x] += digAmount * percentage;
                 }
 
             } else {
@@ -555,14 +559,14 @@ namespace LandscaperAnts {
                     float percentage = 0.2f - (0.2f * i * 0.5f);
 
                     if (f1.x >= 0 && f1.y >= 0 && f1.x < grid.BaseDim && f1.y < grid.BaseDim)
-                        grid.Heights[f1.y, f1.x] += heightIncr * percentage;
+                        grid.Heights[f1.y, f1.x] += digAmount * percentage;
 
                     if (f2.x >= 0 && f2.y >= 0 && f2.x < grid.BaseDim && f2.y < grid.BaseDim)
-                        grid.Heights[f2.y, f2.x] += heightIncr * percentage;
+                        grid.Heights[f2.y, f2.x] += digAmount * percentage;
                 }
             }
 
-            grid.Heights[current.y, current.x] += heightIncr * 0.4f;
+            grid.Heights[current.y, current.x] += digAmount * 0.4f;
 
             // Update the minimum height, if lower than the last min value
             if (grid.Heights[next.y, next.x] < grid.MinHeight)
@@ -706,7 +710,7 @@ namespace LandscaperAnts {
         private void DisplayHomeSprite(Vector2Int start) {
 
             // Skip creation if no sprite is given
-            if (homeSprite is null)
+            if (homeSprite == null)
                 return;
 
             // Instantiate sprite

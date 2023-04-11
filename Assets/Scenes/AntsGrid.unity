@@ -1492,21 +1492,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acf27a41304e747418bfea481a7c0e57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  antsInPlace: 0
+  useSeed: 1
+  rndSeed: 182912
   shuffleAnts: 1
   individualStart: 1
   nAnts: 250
   maxSteps: 10000
+  antsInPlace: 0
   pheromoneWeight: 1
   slopeWeight: 0.8
   directionWeight: 1
   randomWeight: 0.1
-  rho: 0.05
-  foodHeightIncr: 0.05
-  noFoodHeightIncr: 0.002
   pheromoneDeposit: 0.8
   maxPheromones: 1
+  phEvap: 0.05
   maxSlope: 0.9
+  foodHeightIncr: 0.05
+  noFoodHeightIncr: 0.002
   terrain: {fileID: 451495196}
   grid:
     flatTerrain: 1

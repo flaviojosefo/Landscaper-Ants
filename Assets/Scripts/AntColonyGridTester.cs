@@ -13,6 +13,9 @@ namespace LandscaperAnts {
 
         [Header("General Settings")]
 
+        [SerializeField] private bool useSeed = false;                      // Should the algorithm use a fixed seed?
+        [SerializeField] private int rndSeed = -188287030;                  // The user given random controlling seed
+        [Space]
         [SerializeField] private bool shuffleAnts = false;                  // Should Ants be shuffled when iterated?
         [SerializeField] private bool individualStart = false;              // Should Ants' starting position be randomly different between eachother?
 
@@ -61,6 +64,10 @@ namespace LandscaperAnts {
             // Return if the algorithm is executing
             if (antWork is not null)
                 return;
+
+            // Assign a seed, if requested
+            if (useSeed)
+                Random.InitState(rndSeed);
 
             // Reset heightmap
             FlattenHeightmap();

@@ -11,9 +11,8 @@ namespace LandscaperAnts {
 
     public sealed class AntColonyGridTester : MonoBehaviour {
 
-        [Header("Main Settings")]
+        [Header("General Settings")]
 
-        [SerializeField] private bool antsInPlace = true;                   // Should Ants be able to select the next cell as the one they're on?
         [SerializeField] private bool shuffleAnts = false;                  // Should Ants be shuffled when iterated?
         [SerializeField] private bool individualStart = false;              // Should Ants' starting position be randomly different between eachother?
 
@@ -21,22 +20,28 @@ namespace LandscaperAnts {
 
         [SerializeField, Range(1, 100000)] private float maxSteps = 1000;   // The number of steps an Ant can perform
 
+        [Header("Behavioural Settings")]
+
+        [SerializeField] private bool antsInPlace = false;                  // Should Ants be able to select the next cell as the one they're on?
+        [Space]
         [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;    // Pheromone weight used on cell selection
         [SerializeField, Range(0, 1)] private float slopeWeight = 1;        // Slope weight used on cell selection
         [SerializeField, Range(0, 1)] private float directionWeight = 1;    // Direction (to starting cell) weight used on cell selection
         [SerializeField, Range(0, 1)] private float randomWeight = 1;       // Random weight used on cell selection
+        [Space]
+        [SerializeField] private float pheromoneDeposit = 0.1f;             // The pheromone value that ants deposit on a given cell
+        [SerializeField, Range(1, 10)] private float maxPheromones = 1;     // The max amount of pheromones allowed to be on any given cell
+        [Space]
+        [SerializeField, Range(0, 1)] private float phEvap = 0.05f;         // Pheromone evaporation coefficient
+        [Space]
+        [SerializeField, Range(0, 1)] private float maxSlope = 0.9f;        // The max slope an Ant can endure
 
-        [SerializeField, Range(0, 1)] private float rho = 0.01f;            // Pheromone evaporation coefficient
+        [Header("Heightmap Settings")]
 
         [SerializeField] private float foodHeightIncr = 0.02f;              // The height value that ants that have food remove from a given cell
         [SerializeField] private float noFoodHeightIncr = 0.01f;            // The height value that ants that DON'T have food remove from a given cell
 
-        [SerializeField] private float pheromoneDeposit = 0.1f;             // The pheromone value that ants deposit on a given cell
-
-        [SerializeField, Range(1, 10)] private float maxPheromones = 1;     // The max amount of pheromones allowed to be on any given cell
-        [SerializeField, Range(0, 1)] private float maxSlope = 0.9f;        // The max slope an Ant can endure
-
-        [SerializeField] private Terrain terrain;
+        [SerializeField] private Terrain terrain;                           // The terrain that will be affected by the heightmap changes
 
         [SerializeField, Space] private Grid grid;                          // The collection of nodes and respective cost and pheromone matrices
 
@@ -449,7 +454,7 @@ namespace LandscaperAnts {
                 for (int j = 0; j < grid.BaseDim; j++) {
 
                     // Calculate new value based on evaporation
-                    float evaporated = (1 - rho) * grid.Pheromones[i, j];
+                    float evaporated = (1 - phEvap) * grid.Pheromones[i, j];
 
                     // Update pheromone value in specific cell
                     grid.Pheromones[i, j] = evaporated;

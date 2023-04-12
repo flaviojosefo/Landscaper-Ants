@@ -1,20 +1,23 @@
 using UnityEngine;
 
-public sealed class Food {
+namespace LandscaperAnts {
 
-    public int Bites { get; private set; }
+    public sealed class Food {
 
-    public Vector2Int Cell { get; }
+        public int Bites { get; private set; }
 
-    public Food(Vector2Int cell, int maxBites) {
+        public Vector2Int Cell { get; }
 
-        Cell = cell;
-        Bites = maxBites;
+        public Food(Vector2Int cell, int maxBites) {
+
+            Cell = cell;
+            Bites = maxBites;
+        }
+
+        public bool HasBitesLeft() => Bites > 0;
+
+        // Behaviour of biting is in a function because we
+        // might later want to implement 'biting' as a percentage
+        public void TakeABite() => Bites--;
     }
-
-    public bool HasBitesLeft() => Bites > 0;
-
-    // Behaviour of biting is in a function because we
-    // might later want to implement 'biting' as a percentage
-    public void TakeABite() => Bites--;
 }

@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 namespace LandscaperAnts {
 
-    public sealed class AntColonyGridTester : MonoBehaviour {
+    public sealed class LandscapeController : MonoBehaviour {
 
         [Header("General Settings")]
 
@@ -207,7 +207,7 @@ namespace LandscaperAnts {
                 } else {
 
                     // Check if the Ant has found food and if any is left
-                    if (FoundFood(neighbours, out Food food) && 
+                    if (FoundFood(neighbours, out Food food) &&
                         food.HasBitesLeft()) {
 
                         // "Take a bite" out of the food
@@ -555,7 +555,7 @@ namespace LandscaperAnts {
         }
 
         // Stops the algorithm
-        public void EndCoroutine() {
+        public void StopAnts() {
 
             // Return if the coroutine isn't running
             if (antWork is null)

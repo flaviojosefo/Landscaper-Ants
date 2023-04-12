@@ -441,8 +441,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1913996899}
-        m_TargetAssemblyTypeName: LandscaperAnts.AntColonyGridTester, Assembly-CSharp
-        m_MethodName: EndCoroutine
+        m_TargetAssemblyTypeName: LandscaperAnts.LandscapeController, Assembly-CSharp
+        m_MethodName: StopAnts
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1489,7 +1489,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1913996897}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: acf27a41304e747418bfea481a7c0e57, type: 3}
+  m_Script: {fileID: 11500000, guid: 759d8fa8d2230694891e773c458897c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   useSeed: 1
@@ -1513,7 +1513,7 @@ MonoBehaviour:
   grid:
     flatTerrain: 1
     foodAmount: 5
-    maxFoodBites: 40
+    maxFoodBites: 20
     terrainSize: {x: 10, y: 5, z: 10}
     baseDim: 513
     foodSprite: {fileID: 7786452733030419128, guid: f3669ae66df5e2e4aa9ab55d14708b33, type: 3}
@@ -1605,7 +1605,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1913996899}
-        m_TargetAssemblyTypeName: LandscaperAnts.AntColonyGridTester, Assembly-CSharp
+        m_TargetAssemblyTypeName: LandscaperAnts.LandscapeController, Assembly-CSharp
         m_MethodName: GenerateGrid
         m_Mode: 1
         m_Arguments:
@@ -1617,7 +1617,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 1913996899}
-        m_TargetAssemblyTypeName: LandscaperAnts.AntColonyGridTester, Assembly-CSharp
+        m_TargetAssemblyTypeName: LandscaperAnts.LandscapeController, Assembly-CSharp
         m_MethodName: StartAnts
         m_Mode: 1
         m_Arguments:

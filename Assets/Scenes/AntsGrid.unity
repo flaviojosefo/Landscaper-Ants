@@ -1457,7 +1457,7 @@ GameObject:
   - component: {fileID: 1913996898}
   - component: {fileID: 1913996899}
   m_Layer: 0
-  m_Name: Ants_Grid
+  m_Name: LandscapeController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1494,13 +1494,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useSeed: 1
   rndSeed: 182912
-  shuffleAnts: 1
+  shuffleAnts: 0
   individualStart: 1
   nAnts: 250
   maxSteps: 10000
   antsInPlace: 0
   pheromoneWeight: 1
-  slopeWeight: 0.8
+  slopeWeight: 1
   directionWeight: 1
   randomWeight: 0.1
   pheromoneDeposit: 0.8
@@ -1511,7 +1511,7 @@ MonoBehaviour:
   noFoodHeightIncr: 0.002
   terrain: {fileID: 451495196}
   grid:
-    flatTerrain: 1
+    flatTerrain: 0
     foodAmount: 5
     maxFoodBites: 20
     terrainSize: {x: 10, y: 5, z: 10}

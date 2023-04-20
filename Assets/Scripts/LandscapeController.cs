@@ -74,6 +74,9 @@ namespace LandscaperAnts {
 
             // Create graph and cost and pheromone matrices
             grid.Generate();
+
+            // Create a lump, to test the ants' dodging capabilities (or lack thereof)
+            grid.AddLump(new(380, 201), 15, 1f, 2f);
             print("----- Generated NEW Graph -----");
         }
 
@@ -404,7 +407,7 @@ namespace LandscaperAnts {
 
         private float CalcDirectionPortion(float angle, float weight) {
 
-            return (1 - (angle / 180f)) * weight;
+            return (1f - (angle / 180f)) * weight;
         }
 
         private float CalcPheromonePortion(float ph, float weight) {
@@ -415,7 +418,21 @@ namespace LandscaperAnts {
         private float CalcSlopePortion(float from, float to, float weight) {
 
             // The terrain must go from height of 0-1
-            return (1 - Mathf.Abs(to - from)) * weight;
+            return (1f - Mathf.Abs(to - from)) * weight;
+        }
+
+        private float CalcSlopePortionNEW(Vector2Int cell, float minHeight, float maxHeight) {
+
+            return 1f - Mathf.Abs(((grid.Heights[cell.y, cell.x] - minHeight) / (maxHeight - minHeight)) * 2f - 1f);
+        }
+
+        // NEW: https://www.desmos.com/calculator/xictvlxuyj
+        private float CalcSlopePortionDOWN(Vector2Int cell, float min, float max, float maxPerct) {
+
+            // maxPerct is the percentage that will be available at max(height)
+            // this prevents the percentage from being 0 and excluding the highest point just because it's the max
+
+            return 1f - (((grid.Heights[cell.y, cell.x] - min) / (max - min)) * (1f - maxPerct));
         }
 
         private float CalcRandomPortion(float weight) {

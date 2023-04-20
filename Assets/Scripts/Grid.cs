@@ -99,25 +99,6 @@ namespace LandscaperAnts {
             }
         }
 
-        // Get a node's neighbours' indices
-        public int[] GetNeighbours(int node) {
-
-            // Neighbours are all points which don't correspond to the node itself
-            int[] neighbours = new int[foodAmount - 1];
-
-            // Find neighbours of 'node' based on index
-            for (int i = 0; i < foodAmount; i++) {
-
-                // node = "from" | i = "to"
-                if (node != i) {
-
-                    neighbours[i] = i;
-                }
-            }
-
-            return neighbours;
-        }
-
         // Returns the minimum current height 
         public float GetMinHeight() {
 
@@ -154,11 +135,48 @@ namespace LandscaperAnts {
             };
         }
 
+        public void AddLump(Vector2Int cell, int radius, float height, float power) {
+
+            // Ants are supposed to dodge artificial lumps
+
+            // Lump: 380, 201
+
+            float radiusSquared = Mathf.Pow(radius, power);
+
+            for (int dx = -radius; dx <= radius; dx++) {
+
+                for (int dy = -radius; dy <= radius; dy++) {
+
+                    // Get neighbour coordinates
+                    int nx = cell.x + dx,
+                        ny = cell.y + dy;
+
+                    // Skip neighbour if coordinates are outside of the available 2D space
+                    if (nx < 0 || ny < 0 || nx >= baseDim || ny >= baseDim)
+                        continue;
+
+                    // Calculate the outer layer
+                    int layer = Mathf.Abs(dx) > Mathf.Abs(dy) ? Mathf.Abs(dx) : Mathf.Abs(dy);
+
+                    // Calculate the height to be added
+                    float newHeight = height - ((height * Mathf.Pow(layer, power)) / radiusSquared);
+
+                    // Update the heightmap
+                    heights[ny, nx] += newHeight;
+
+                    // Define the minimum height (if necessary) to correct
+                    // heightmap placement when displaying
+                    if (heights[ny, nx] < MinHeight)
+                        MinHeight = heights[ny, nx];
+                }
+            }
+        }
+
         // Display sprites representing food at their 3D equivalent location
         private void DisplayFoodSprites() {
 
             // Skip creation if no sprite is given
-            if (foodSprite is null)
+            if (foodSprite == null)
                 return;
 
             // Instantiate each sprite

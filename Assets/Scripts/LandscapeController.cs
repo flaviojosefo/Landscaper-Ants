@@ -76,7 +76,7 @@ namespace LandscaperAnts {
             grid.Generate();
 
             // Create a lump, to test the ants' dodging capabilities (or lack thereof)
-            grid.AddLump(new(380, 201), 15, 1f, 2f);
+            //grid.AddLump(new(380, 201), 15, 1f, 2f);
             print("----- Generated NEW Graph -----");
         }
 
@@ -198,7 +198,7 @@ namespace LandscaperAnts {
                         // Normal Search Behaviour
 
                         // Choose the next cell with the idea of coming back home
-                        next = GetNextPoint(current, ants[i].ColonyCell, neighbours);
+                        next = GetNextPoint(neighbours, current, ants[i].ColonyCell);
 
                         // Increment the value of pheromone deposit on the selected cell
                         float newPheromoneValue = grid.Pheromones[next.y, next.x] + pheromoneDeposit;
@@ -225,7 +225,7 @@ namespace LandscaperAnts {
                     } else {
 
                         // Choose the next cell with the idea of aimlessly searching for food
-                        next = GetNextPoint(current, neighbours);
+                        next = GetNextPoint(neighbours, current);
                     }
                 }
 
@@ -295,6 +295,74 @@ namespace LandscaperAnts {
             // Update the minimum height, if lower than the last min value
             if (grid.Heights[next.y, next.x] < grid.MinHeight)
                 grid.MinHeight = grid.Heights[next.y, next.x];
+        }
+
+        // Returns the point the Ant will move towards
+        private Vector2Int GetNextPoint(Vector2Int[] neighbours, Vector2Int current, Vector2Int? destination = null) {
+
+            int neighboursAmount = neighbours.Length;
+
+            float[] pheromonePortions = new float[neighboursAmount];
+            float[] slopePortions = new float[neighboursAmount];
+            float[] directionPortions = new float[neighboursAmount];
+            float[] randomPortions = new float[neighboursAmount];
+
+            float offset = Mathf.Abs(grid.MinHeight);
+
+            float currentHeight = grid.Heights[current.y, current.x] + offset;
+            currentHeight /= (offset == 0 ? 1 : offset);
+
+            // Calculate individual variable influences and save their sum
+
+            float totalSum = 0;
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                Vector2Int n = neighbours[i];
+
+                // Calculate slope portion outside of the if, since it's common between both types of ants (with food vs no food)
+
+                float neighbourHeight = grid.Heights[n.y, n.x] + offset;
+                neighbourHeight /= (offset == 0 ? 1 : offset);
+
+                slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
+
+                // destination is null = exploring = the ant has no food
+                if (destination is null) {
+
+                    pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
+
+                    randomPortions[i] = CalcRandomPortion(randomWeight);
+
+                } else {
+
+                    Vector2Int mainDirection = (Vector2Int)destination - current;
+
+                    // Calculate direction and angle with [origin to destination] vector
+                    Vector2Int direction = n - current;
+                    float angle = Vector2.Angle(mainDirection, direction);
+
+                    directionPortions[i] = CalcDirectionPortion(angle, directionWeight);
+                }
+
+                totalSum += pheromonePortions[i] + slopePortions[i] + directionPortions[i] + randomPortions[i];
+            }
+
+            // Calculate each neighbour's percentage based on the sum of its values divided by the total sum
+
+            (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
+
+            for (int i = 0; i < neighboursAmount; i++) {
+
+                float percentage = (pheromonePortions[i] + slopePortions[i] + directionPortions[i] + randomPortions[i]) / totalSum;
+
+                nPerctgs[i] = (i, percentage);
+            }
+
+            // Randomly select the next cell
+            Vector2Int nextCell = ChooseRandom(neighbours, nPerctgs);
+
+            return nextCell;
         }
 
         // Returns a (pheromone and slope influenced) point for the Ant to move towards

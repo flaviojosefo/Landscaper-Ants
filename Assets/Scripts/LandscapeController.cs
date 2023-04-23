@@ -312,6 +312,22 @@ namespace LandscaperAnts {
             float currentHeight = grid.Heights[current.y, current.x] + offset;
             currentHeight /= (offset == 0 ? 1 : offset);
 
+            // Fetch min/max height
+
+            //float minHeight = grid.Heights[current.y, current.x];
+            //float maxHeight = minHeight;
+
+            //for (int i = 0; i < neighboursAmount; i++) {
+
+            //    float nHeight = grid.Heights[neighbours[i].y, neighbours[i].x];
+
+            //    if (nHeight < minHeight)
+            //        minHeight = nHeight;
+
+            //    if (nHeight > maxHeight)
+            //        maxHeight = nHeight;
+            //}
+
             // Calculate individual variable influences and save their sum
 
             float totalSum = 0;
@@ -326,6 +342,7 @@ namespace LandscaperAnts {
                 neighbourHeight /= (offset == 0 ? 1 : offset);
 
                 slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
+                //slopePortions[i] = CalcSlopePortionDOWN(grid.Heights[n.y, n.x], minHeight, maxHeight, 0.0f);
 
                 // destination is null = exploring = the ant has no food
                 if (destination is null) {
@@ -384,18 +401,18 @@ namespace LandscaperAnts {
             return (1f - Mathf.Abs(to - from)) * weight;
         }
 
-        private float CalcSlopePortionNEW(Vector2Int cell, float minHeight, float maxHeight) {
+        private float CalcSlopePortionNEW(float height, float minHeight, float maxHeight) {
 
-            return 1f - Mathf.Abs(((grid.Heights[cell.y, cell.x] - minHeight) / (maxHeight - minHeight)) * 2f - 1f);
+            return 1f - Mathf.Abs(((height - minHeight) / (maxHeight - minHeight)) * 2f - 1f);
         }
 
         // NEW: https://www.desmos.com/calculator/xictvlxuyj
-        private float CalcSlopePortionDOWN(Vector2Int cell, float min, float max, float maxPerct) {
+        private float CalcSlopePortionDOWN(float height, float min, float max, float minPerct) {
 
-            // maxPerct is the percentage that will be available at max(height)
-            // this prevents the percentage from being 0 and excluding the highest point just because it's the max
+            // minPerct is the percentage that will be available at max(height)
+            // this changes the function's output from 0-1 to minPerct-1
 
-            return 1f - (((grid.Heights[cell.y, cell.x] - min) / (max - min)) * (1f - maxPerct));
+            return 1f - (((height - min) / (max - min)) * (1f - minPerct));
         }
 
         private float CalcRandomPortion(float weight) {

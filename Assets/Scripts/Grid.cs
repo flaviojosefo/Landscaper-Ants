@@ -91,9 +91,14 @@ namespace LandscaperAnts {
 
                     for (int j = 0; j < baseDim; j++) {
 
-                        heights[i, j] = Mathf.PerlinNoise(
+                        float perlin = Mathf.PerlinNoise(
                                 (10f * i) / baseDim,
                                 (10f * j) / baseDim);
+
+                        heights[i, j] = perlin;
+
+                        if (perlin < MinHeight)
+                            MinHeight = perlin;
                     }
                 }
             }

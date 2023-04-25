@@ -7,10 +7,10 @@ using Generator;
 using TMPro;
 using Random = UnityEngine.Random;
 
-namespace LandscaperAnts {
-
-    public sealed class LandscapeController : MonoBehaviour {
-
+namespace LandscaperAnts
+{
+    public sealed class LandscapeController : MonoBehaviour
+    {
         [Header("General Settings")]
 
         [SerializeField] private bool useSeed = false;                      // Should the algorithm use a fixed seed?
@@ -59,8 +59,8 @@ namespace LandscaperAnts {
         private Coroutine antWork;                                          // The coroutine for the algorithm's main loop (1 iteration/step per frame)
 
         // Method to generate a new graph
-        public void GenerateGrid() {
-
+        public void GenerateGrid()
+        {
             // Return if the algorithm is executing
             if (antWork is not null)
                 return;
@@ -81,8 +81,8 @@ namespace LandscaperAnts {
         }
 
         // Method to generate trails
-        public void StartAnts() {
-
+        public void StartAnts()
+        {
             if (antWork is not null && grid.Foods is null)
                 return;
 
@@ -91,16 +91,16 @@ namespace LandscaperAnts {
         }
 
         // Algorithm's main method -> Threads: https://github.com/nunofachada/AIUnityExamples/blob/main/MovementOptimize/Assets/Scripts/Optimizer.cs
-        private IEnumerator Run() {
-
+        private IEnumerator Run()
+        {
             InitAnts();
 
             // The current number of iterations
             int step = 0;
 
             // Main algorithm loop
-            while (step < maxSteps) {
-
+            while (step < maxSteps)
+            {
                 UpdateAnts();
                 UpdatePheromones();
 
@@ -121,8 +121,8 @@ namespace LandscaperAnts {
             print("----- Algorithm ENDED -----");
         }
 
-        private Vector2Int GetRandomPos() {
-
+        private Vector2Int GetRandomPos()
+        {
             int x = Random.Range(0, grid.BaseDim);
             int y = Random.Range(0, grid.BaseDim);
 
@@ -130,8 +130,8 @@ namespace LandscaperAnts {
         }
 
         // Initiate Ant state (mainly their position)
-        private void InitAnts() {
-
+        private void InitAnts()
+        {
             // Create the necessary ants
             ants = new Ant[nAnts];
 
@@ -139,20 +139,21 @@ namespace LandscaperAnts {
             Vector2Int colony = GetRandomPos();
 
             // Check if ants start in separate cells or not
-            if (individualStart) {
-
-                for (int i = 0; i < nAnts; i++) {
-
+            if (individualStart)
+            {
+                for (int i = 0; i < nAnts; i++)
+                {
                     // The starting position for the current ant
                     Vector2Int start = GetRandomPos();
 
                     ants[i] = new(colony, start);
                 }
 
-            } else {
-
-                for (int i = 0; i < nAnts; i++) {
-
+            }
+            else
+            {
+                for (int i = 0; i < nAnts; i++)
+                {
                     ants[i] = new(colony);
                 }
             }
@@ -163,15 +164,15 @@ namespace LandscaperAnts {
         }
 
         // Update the Ants' status
-        private void UpdateAnts() {
-
+        private void UpdateAnts()
+        {
             // Shuffle ants if required
             if (shuffleAnts)
                 ants.Shuffle();
 
             // Loop through the number of ants
-            for (int i = 0; i < nAnts; i++) {
-
+            for (int i = 0; i < nAnts; i++)
+            {
                 // Get the current ant's cell
                 Vector2Int current = ants[i].CurrentCell;
 
@@ -182,19 +183,19 @@ namespace LandscaperAnts {
                 Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
 
                 // Check if the Ant is "carrying" food
-                if (ants[i].HasFood) {
-
+                if (ants[i].HasFood)
+                {
                     // Check if the Ant reached its home
-                    if (ants[i].IsHome()) {
-
+                    if (ants[i].IsHome())
+                    {
                         // If so, stop carrying food
                         ants[i].HasFood = false;
 
                         // Have the Ant stay in place
                         next = current;
-
-                    } else {
-
+                    }
+                    else
+                    {
                         // Normal Search Behaviour
 
                         // Choose the next cell with the idea of coming back home
@@ -207,12 +208,13 @@ namespace LandscaperAnts {
                         grid.Pheromones[next.y, next.x] = Mathf.Clamp(newPheromoneValue, 0, maxPheromones);
                     }
 
-                } else {
-
+                }
+                else
+                {
                     // Check if the Ant has found food and if any is left
                     if (FoundFood(neighbours, out Food food) &&
-                        food.HasBitesLeft()) {
-
+                        food.HasBitesLeft())
+                    {
                         // "Take a bite" out of the food
                         food.TakeABite();
 
@@ -221,9 +223,9 @@ namespace LandscaperAnts {
 
                         // Have the Ant stay in place
                         next = current;
-
-                    } else {
-
+                    }
+                    else
+                    {
                         // Choose the next cell with the idea of aimlessly searching for food
                         next = GetNextPoint(neighbours, current);
                     }
@@ -237,8 +239,8 @@ namespace LandscaperAnts {
             }
         }
 
-        private void Dig(Vector2Int current, Vector2Int next, int index) {
-
+        private void Dig(Vector2Int current, Vector2Int next, int index)
+        {
             float digAmount = ants[index].HasFood ? foodHeightIncr : noFoodHeightIncr;
 
             // Decrement a manual value from the heightmap at the select cell
@@ -252,12 +254,12 @@ namespace LandscaperAnts {
             //  B D X
 
             // Check if the ant is moving horizontally, vertically or diagonally
-            if (direction.x == 0 || direction.y == 0) {
-
+            if (direction.x == 0 || direction.y == 0)
+            {
                 Vector2Int perpendicular = new(-direction.y, direction.x);
 
-                for (int i = 0; i < 2; i++) {
-
+                for (int i = 0; i < 2; i++)
+                {
                     Vector2Int f1 = (current + perpendicular) + (i * direction);
                     Vector2Int f2 = (current - perpendicular) + (i * direction);
 
@@ -270,13 +272,14 @@ namespace LandscaperAnts {
                         grid.Heights[f2.y, f2.x] += digAmount * percentage;
                 }
 
-            } else {
-
+            }
+            else
+            {
                 Vector2Int horizontal = new(direction.x, 0);
                 Vector2Int vertical = new(0, direction.y);
 
-                for (int i = 0; i < 2; i++) {
-
+                for (int i = 0; i < 2; i++)
+                {
                     Vector2Int f1 = current + (horizontal * (i + 1));
                     Vector2Int f2 = current + (vertical * (i + 1));
 
@@ -298,8 +301,8 @@ namespace LandscaperAnts {
         }
 
         // Returns the point the Ant will move towards
-        private Vector2Int GetNextPoint(Vector2Int[] neighbours, Vector2Int current, Vector2Int? destination = null) {
-
+        private Vector2Int GetNextPoint(Vector2Int[] neighbours, Vector2Int current, Vector2Int? destination = null)
+        {
             int neighboursAmount = neighbours.Length;
 
             float[] pheromonePortions = new float[neighboursAmount];
@@ -314,26 +317,26 @@ namespace LandscaperAnts {
 
             // Fetch min/max height
 
-            //float minHeight = grid.Heights[current.y, current.x];
-            //float maxHeight = minHeight;
+            float minHeight = grid.Heights[current.y, current.x];
+            float maxHeight = minHeight;
 
-            //for (int i = 0; i < neighboursAmount; i++) {
+            for (int i = 0; i < neighboursAmount; i++)
+            {
+                float nHeight = grid.Heights[neighbours[i].y, neighbours[i].x];
 
-            //    float nHeight = grid.Heights[neighbours[i].y, neighbours[i].x];
+                if (nHeight < minHeight)
+                    minHeight = nHeight;
 
-            //    if (nHeight < minHeight)
-            //        minHeight = nHeight;
-
-            //    if (nHeight > maxHeight)
-            //        maxHeight = nHeight;
-            //}
+                if (nHeight > maxHeight)
+                    maxHeight = nHeight;
+            }
 
             // Calculate individual variable influences and save their sum
 
             float totalSum = 0;
 
-            for (int i = 0; i < neighboursAmount; i++) {
-
+            for (int i = 0; i < neighboursAmount; i++)
+            {
                 Vector2Int n = neighbours[i];
 
                 // Calculate slope portion outside of the if, since it's common between both types of ants (with food vs no food)
@@ -345,14 +348,14 @@ namespace LandscaperAnts {
                 //slopePortions[i] = CalcSlopePortionDOWN(grid.Heights[n.y, n.x], minHeight, maxHeight, 0.0f);
 
                 // destination is null = exploring = the ant has no food
-                if (destination is null) {
-
+                if (destination is null)
+                {
                     pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
 
                     randomPortions[i] = CalcRandomPortion(randomWeight);
-
-                } else {
-
+                }
+                else
+                {
                     Vector2Int mainDirection = (Vector2Int)destination - current;
 
                     // Calculate direction and angle with [origin to destination] vector
@@ -369,8 +372,8 @@ namespace LandscaperAnts {
 
             (int index, float percentage)[] nPerctgs = new (int, float)[neighboursAmount];
 
-            for (int i = 0; i < neighboursAmount; i++) {
-
+            for (int i = 0; i < neighboursAmount; i++)
+            {
                 float percentage = (pheromonePortions[i] + slopePortions[i] + directionPortions[i] + randomPortions[i]) / totalSum;
 
                 nPerctgs[i] = (i, percentage);
@@ -385,43 +388,44 @@ namespace LandscaperAnts {
         // Graphics with the functions present below
         // https://www.desmos.com/calculator/gc1pygvebj
 
-        private float CalcDirectionPortion(float angle, float weight) {
-
+        private float CalcDirectionPortion(float angle, float weight)
+        {
             return (1f - (angle / 180f)) * weight;
         }
 
-        private float CalcPheromonePortion(float ph, float weight) {
-
+        private float CalcPheromonePortion(float ph, float weight)
+        {
             return (ph / maxPheromones) * weight;
         }
 
-        private float CalcSlopePortion(float from, float to, float weight) {
-
+        private float CalcSlopePortion(float from, float to, float weight)
+        {
             // The terrain must go from height of 0-1
             return (1f - Mathf.Abs(to - from)) * weight;
         }
 
-        private float CalcSlopePortionNEW(float height, float minHeight, float maxHeight) {
-
+        private float CalcSlopePortionNEW(float height, float minHeight, float maxHeight)
+        {
             return 1f - Mathf.Abs(((height - minHeight) / (maxHeight - minHeight)) * 2f - 1f);
         }
 
         // NEW: https://www.desmos.com/calculator/xictvlxuyj
-        private float CalcSlopePortionDOWN(float height, float min, float max, float minPerct) {
-
+        private float CalcSlopePortionDOWN(float height, float min, float max, float minPerct)
+        {
             // minPerct is the percentage that will be available at max(height)
             // this changes the function's output from 0-1 to minPerct-1
 
             return 1f - (((height - min) / (max - min)) * (1f - minPerct));
         }
 
-        private float CalcRandomPortion(float weight) {
+        private float CalcRandomPortion(float weight)
+        {
             return Random.value * weight;
         }
 
         // Choose a random member of a collection based on a roulette wheel operation
-        private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities) {
-
+        private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities)
+        {
             // ##### ROULETTE WHEEL #####
 
             probabilities = probabilities.OrderBy(x => x.percentage).ToArray();
@@ -429,18 +433,18 @@ namespace LandscaperAnts {
             // Calculate cumulative sum
             float[] cumulSum = new float[probabilities.Length + 1];
 
-            for (int i = 0; i < probabilities.Length; i++) {
-
+            for (int i = 0; i < probabilities.Length; i++)
+            {
                 cumulSum[i + 1] = cumulSum[i] + probabilities[i].percentage;
             }
 
             // Get random value between 0 and 1 (both inclusive)
             float rnd = Random.value;
 
-            for (int i = 0; i < cumulSum.Length - 1; i++) {
-
-                if ((rnd >= cumulSum[i]) && (rnd < cumulSum[i + 1])) {
-
+            for (int i = 0; i < cumulSum.Length - 1; i++)
+            {
+                if ((rnd >= cumulSum[i]) && (rnd < cumulSum[i + 1]))
+                {
                     return collection[probabilities[i].index];
                 }
             }
@@ -449,14 +453,14 @@ namespace LandscaperAnts {
             return collection[probabilities[^1].index];
         }
 
-        private void UpdatePheromones() {
-
+        private void UpdatePheromones()
+        {
             // Evaporation & Dissipation
 
-            for (int i = 0; i < grid.BaseDim; i++) {
-
-                for (int j = 0; j < grid.BaseDim; j++) {
-
+            for (int i = 0; i < grid.BaseDim; i++)
+            {
+                for (int j = 0; j < grid.BaseDim; j++)
+                {
                     // Calculate new value based on evaporation
                     float evaporated = (1 - phEvap) * grid.Pheromones[i, j];
 
@@ -467,15 +471,15 @@ namespace LandscaperAnts {
         }
 
         // Checks if the Ant is next to a food source
-        private bool FoundFood(Vector2Int[] neighbours, out Food food) {
-
+        private bool FoundFood(Vector2Int[] neighbours, out Food food)
+        {
             // Returns true if one of the neighbouring cells is a food source
-            for (int i = 0; i < grid.Foods.Length; i++) {
-
-                for (int j = 0; j < neighbours.Length; j++) {
-
-                    if (grid.Foods[i].Cell == neighbours[j]) {
-
+            for (int i = 0; i < grid.Foods.Length; i++)
+            {
+                for (int j = 0; j < neighbours.Length; j++)
+                {
+                    if (grid.Foods[i].Cell == neighbours[j])
+                    {
                         // 'out' the food that was found
                         food = grid.Foods[i];
 
@@ -492,8 +496,8 @@ namespace LandscaperAnts {
         }
 
         // Search for a point's neighbours using Moore's neighbourhood algorithm
-        private Vector2Int[] GetMooreNeighbours(Vector2Int p, bool includeOrigin = false) {
-
+        private Vector2Int[] GetMooreNeighbours(Vector2Int p, bool includeOrigin = false)
+        {
             // The list of neighbours to find
             List<Vector2Int> neighbours = new();
 
@@ -502,10 +506,10 @@ namespace LandscaperAnts {
                 neighbours.Add(p);
 
             // Search for all neighbouring cells (Moore neighbourhood)
-            for (int dx = -1; dx <= 1; dx++) {
-
-                for (int dy = -1; dy <= 1; dy++) {
-
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
                     // Skip the cell if the coordinates match the extracted cell
                     if (dx == 0 && dy == 0)
                         continue;
@@ -528,18 +532,18 @@ namespace LandscaperAnts {
         }
 
         // Updates the terrain's heightmap
-        private void UpdateTerrain() {
-
+        private void UpdateTerrain()
+        {
             // Get the value for translation
             float offset = Mathf.Abs(grid.MinHeight);
 
             // Create a normalized heightmap
             float[,] translated = new float[grid.BaseDim, grid.BaseDim];
 
-            for (int i = 0; i < grid.BaseDim; i++) {
-
-                for (int j = 0; j < grid.BaseDim; j++) {
-
+            for (int i = 0; i < grid.BaseDim; i++)
+            {
+                for (int j = 0; j < grid.BaseDim; j++)
+                {
                     translated[i, j] = (grid.Heights[i, j] + offset) / grid.TerrainSize.y;
                 }
             }
@@ -552,8 +556,8 @@ namespace LandscaperAnts {
         }
 
         // Stops the algorithm
-        public void StopAnts() {
-
+        public void StopAnts()
+        {
             // Return if the coroutine isn't running
             if (antWork is null)
                 return;
@@ -568,8 +572,8 @@ namespace LandscaperAnts {
         }
 
         // Resets the heightmap
-        public void FlattenHeightmap() {
-
+        public void FlattenHeightmap()
+        {
             int texelSize = grid.BaseDim;
 
             // Apply the heightmap resolution on the terrain
@@ -586,8 +590,8 @@ namespace LandscaperAnts {
         }
 
         // Display sprites representing food at their 3D equivalent location
-        private void DisplayHomeSprite(Vector2Int start) {
-
+        private void DisplayHomeSprite(Vector2Int start)
+        {
             // Skip creation if no sprite is given
             if (homeSprite == null)
                 return;

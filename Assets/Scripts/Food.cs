@@ -1,15 +1,15 @@
 using UnityEngine;
 
-namespace LandscaperAnts {
-
-    public sealed class Food {
-
+namespace LandscaperAnts
+{
+    public sealed class Food
+    {
         public int Bites { get; private set; }
 
         public Vector2Int Cell { get; }
 
-        public Food(Vector2Int cell, int maxBites) {
-
+        public Food(Vector2Int cell, int maxBites)
+        {
             Cell = cell;
             Bites = maxBites;
         }

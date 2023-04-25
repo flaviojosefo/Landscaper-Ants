@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace LandscaperAnts {
-
-    public sealed class Ant {
-
+namespace LandscaperAnts
+{
+    public sealed class Ant
+    {
         public bool HasFood { get; set; }
 
         public Vector2Int ColonyCell { get; private set; }
@@ -11,14 +11,14 @@ namespace LandscaperAnts {
         public Vector2Int CurrentCell { get; set; }
 
         // Creates an Ant on the colony's position
-        public Ant(Vector2Int colony) {
-
+        public Ant(Vector2Int colony)
+        {
             ColonyCell = CurrentCell = colony;
         }
 
         // Creates an Ant on a given "starter" position
-        public Ant(Vector2Int colony, Vector2Int start) {
-
+        public Ant(Vector2Int colony, Vector2Int start)
+        {
             ColonyCell = colony;
             CurrentCell = start;
         }

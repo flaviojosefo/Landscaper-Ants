@@ -3,11 +3,11 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using Object = UnityEngine.Object;
 
-namespace LandscaperAnts {
-
+namespace LandscaperAnts
+{
     [Serializable]
-    public sealed class Grid {
-
+    public sealed class Grid
+    {
         [Header("Grid Generation Settings")]
 
         [SerializeField]
@@ -52,8 +52,8 @@ namespace LandscaperAnts {
         public float[,] Pheromones => pheromones;
 
         // Setup all grid variables
-        public void Generate() {
-
+        public void Generate()
+        {
             CreateNodes();
 
             CreateMatrices();
@@ -62,12 +62,12 @@ namespace LandscaperAnts {
         }
 
         // Create a collection of points on random positions
-        private void CreateNodes() {
-
+        private void CreateNodes()
+        {
             foods = new Food[foodAmount];
 
-            for (int i = 0; i < foodAmount; i++) {
-
+            for (int i = 0; i < foodAmount; i++)
+            {
                 int x = Random.Range(0, baseDim);
                 int y = Random.Range(0, baseDim);
 
@@ -78,19 +78,19 @@ namespace LandscaperAnts {
         }
 
         // Create height and pheromone matrices
-        private void CreateMatrices() {
-
+        private void CreateMatrices()
+        {
             heights = new float[baseDim, baseDim];
 
             pheromones = new float[baseDim, baseDim];
 
             // Initiate terrain as non flat
-            if (!flatTerrain) {
-
-                for (int i = 0; i < baseDim; i++) {
-
-                    for (int j = 0; j < baseDim; j++) {
-
+            if (!flatTerrain)
+            {
+                for (int i = 0; i < baseDim; i++)
+                {
+                    for (int j = 0; j < baseDim; j++)
+                    {
                         float perlin = Mathf.PerlinNoise(
                                 (10f * i) / baseDim,
                                 (10f * j) / baseDim);
@@ -105,14 +105,14 @@ namespace LandscaperAnts {
         }
 
         // Returns the minimum current height 
-        public float GetMinHeight() {
-
+        public float GetMinHeight()
+        {
             // The value to be returned
             float min = float.MaxValue;
 
             // Loop through the heightmap as a 1D array
-            for (int i = 0; i < baseDim * baseDim; i++) {
-
+            for (int i = 0; i < baseDim * baseDim; i++)
+            {
                 // Get the x and y coordinates based on the current index
                 int x = i % baseDim;
                 int y = i / baseDim;
@@ -131,27 +131,28 @@ namespace LandscaperAnts {
         public void ResetMatrices() => CreateMatrices();
 
         // Assumes the terrain is in the center of the 3D world
-        public Vector3 TexelToVector(Vector2Int texel) {
-
-            return new() {
+        public Vector3 TexelToVector(Vector2Int texel)
+        {
+            return new()
+            {
                 x = ((texel.x / (float)baseDim) * 10f) - 5,
                 y = 0.01f,
                 z = ((texel.y / (float)baseDim) * 10f) - 5
             };
         }
 
-        public void AddLump(Vector2Int cell, int radius, float height, float power) {
-
+        public void AddLump(Vector2Int cell, int radius, float height, float power)
+        {
             // Ants are supposed to dodge artificial lumps
 
             // Lump: 380, 201
 
             float radiusSquared = Mathf.Pow(radius, power);
 
-            for (int dx = -radius; dx <= radius; dx++) {
-
-                for (int dy = -radius; dy <= radius; dy++) {
-
+            for (int dx = -radius; dx <= radius; dx++)
+            {
+                for (int dy = -radius; dy <= radius; dy++)
+                {
                     // Get neighbour coordinates
                     int nx = cell.x + dx,
                         ny = cell.y + dy;
@@ -178,15 +179,15 @@ namespace LandscaperAnts {
         }
 
         // Display sprites representing food at their 3D equivalent location
-        private void DisplayFoodSprites() {
-
+        private void DisplayFoodSprites()
+        {
             // Skip creation if no sprite is given
             if (foodSprite == null)
                 return;
 
             // Instantiate each sprite
-            for (int i = 0; i < foodAmount; i++) {
-
+            for (int i = 0; i < foodAmount; i++)
+            {
                 Vector3 spritePos = TexelToVector(foods[i].Cell);
 
                 Object.Instantiate(foodSprite, spritesParent).transform.position = spritePos;

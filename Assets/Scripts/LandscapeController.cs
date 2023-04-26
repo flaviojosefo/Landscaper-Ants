@@ -148,7 +148,6 @@ namespace LandscaperAnts
 
                     ants[i] = new(colony, start);
                 }
-
             }
             else
             {
@@ -183,13 +182,13 @@ namespace LandscaperAnts
                 Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
 
                 // Check if the Ant is "carrying" food
-                if (ants[i].HasFood)
+                if (ants[i].HasFood())
                 {
                     // Check if the Ant reached its home
                     if (ants[i].IsHome())
                     {
                         // If so, stop carrying food
-                        ants[i].HasFood = false;
+                        ants[i].Food = null;
 
                         // Have the Ant stay in place
                         next = current;
@@ -202,12 +201,12 @@ namespace LandscaperAnts
                         next = GetNextPoint(neighbours, current, ants[i].ColonyCell);
 
                         // Increment the value of pheromone deposit on the selected cell
-                        float newPheromoneValue = grid.Pheromones[next.y, next.x] + pheromoneDeposit;
+                        float newPheromoneValue = 
+                            grid.Pheromones[current.y, current.x] + ants[i].DropPheromone(pheromoneDeposit);
 
                         // Apply the new value but clamp between a min and max
-                        grid.Pheromones[next.y, next.x] = Mathf.Clamp(newPheromoneValue, 0, maxPheromones);
+                        grid.Pheromones[current.y, current.x] = Mathf.Clamp(newPheromoneValue, 0, maxPheromones);
                     }
-
                 }
                 else
                 {
@@ -219,7 +218,7 @@ namespace LandscaperAnts
                         food.TakeABite();
 
                         // Start carrying food
-                        ants[i].HasFood = true;
+                        ants[i].Food = food;
 
                         // Have the Ant stay in place
                         next = current;
@@ -241,7 +240,7 @@ namespace LandscaperAnts
 
         private void Dig(Vector2Int current, Vector2Int next, int index)
         {
-            float digAmount = ants[index].HasFood ? foodHeightIncr : noFoodHeightIncr;
+            float digAmount = ants[index].HasFood() ? foodHeightIncr : noFoodHeightIncr;
 
             // Decrement a manual value from the heightmap at the select cell
             grid.Heights[next.y, next.x] -= digAmount;
@@ -317,19 +316,19 @@ namespace LandscaperAnts
 
             // Fetch min/max height
 
-            float minHeight = grid.Heights[current.y, current.x];
-            float maxHeight = minHeight;
+            //float minHeight = grid.Heights[current.y, current.x];
+            //float maxHeight = minHeight;
 
-            for (int i = 0; i < neighboursAmount; i++)
-            {
-                float nHeight = grid.Heights[neighbours[i].y, neighbours[i].x];
+            //for (int i = 0; i < neighboursAmount; i++)
+            //{
+            //    float nHeight = grid.Heights[neighbours[i].y, neighbours[i].x];
 
-                if (nHeight < minHeight)
-                    minHeight = nHeight;
+            //    if (nHeight < minHeight)
+            //        minHeight = nHeight;
 
-                if (nHeight > maxHeight)
-                    maxHeight = nHeight;
-            }
+            //    if (nHeight > maxHeight)
+            //        maxHeight = nHeight;
+            //}
 
             // Calculate individual variable influences and save their sum
 

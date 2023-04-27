@@ -37,19 +37,15 @@ namespace LandscaperAnts
         private GameObject foodSprite;
 
         [SerializeField]
-        private Transform spritesParent;
-
-        private Food[] foods;            // The points of interest on the grid
-        private float[,] heights;        // The height values on all elements of the grid
-        private float[,] pheromones;     // The pheromones values on all elements of the grid
+        private Transform spritesParent;          
 
         public int BaseDim => baseDim;
         public Vector3 TerrainSize => terrainSize;
         public float MinHeight { get; set; }
 
-        public Food[] Foods => foods;
-        public float[,] Heights => heights;
-        public float[,] Pheromones => pheromones;
+        public Food[] Foods { get; private set; } // The points of interest on the grid
+        public float[,] Heights { get; set; }     // The height values on all elements of the grid
+        public float[,] Pheromones { get; set; }  // The pheromones values on all elements of the grid
 
         // Setup all grid variables
         public void Generate()
@@ -64,7 +60,7 @@ namespace LandscaperAnts
         // Create a collection of points on random positions
         private void CreateNodes()
         {
-            foods = new Food[foodAmount];
+            Foods = new Food[foodAmount];
 
             for (int i = 0; i < foodAmount; i++)
             {
@@ -73,16 +69,16 @@ namespace LandscaperAnts
 
                 Vector2Int foodCell = new(x, y);
 
-                foods[i] = new Food(foodCell, maxFoodBites);
+                Foods[i] = new Food(foodCell, maxFoodBites);
             }
         }
 
         // Create height and pheromone matrices
         private void CreateMatrices()
         {
-            heights = new float[baseDim, baseDim];
+            Heights = new float[baseDim, baseDim];
 
-            pheromones = new float[baseDim, baseDim];
+            Pheromones = new float[baseDim, baseDim];
 
             // Initiate terrain as non flat
             if (!flatTerrain)
@@ -95,7 +91,7 @@ namespace LandscaperAnts
                                 (10f * i) / baseDim,
                                 (10f * j) / baseDim);
 
-                        heights[i, j] = perlin;
+                        Heights[i, j] = perlin;
 
                         if (perlin < MinHeight)
                             MinHeight = perlin;
@@ -118,7 +114,7 @@ namespace LandscaperAnts
                 int y = i / baseDim;
 
                 // Get the float at the above coordinates
-                float current = heights[y, x];
+                float current = Heights[y, x];
 
                 // Update the min value if the current float is lower
                 if (current < min)
@@ -147,7 +143,7 @@ namespace LandscaperAnts
 
             // Lump: 380, 201
 
-            float radiusSquared = Mathf.Pow(radius, power);
+            float radiusIncrease = Mathf.Pow(radius, power);
 
             for (int dx = -radius; dx <= radius; dx++)
             {
@@ -165,15 +161,15 @@ namespace LandscaperAnts
                     int layer = Mathf.Abs(dx) > Mathf.Abs(dy) ? Mathf.Abs(dx) : Mathf.Abs(dy);
 
                     // Calculate the height to be added
-                    float newHeight = height - ((height * Mathf.Pow(layer, power)) / radiusSquared);
+                    float newHeight = height - ((height * Mathf.Pow(layer, power)) / radiusIncrease);
 
                     // Update the heightmap
-                    heights[ny, nx] += newHeight;
+                    Heights[ny, nx] += newHeight;
 
                     // Define the minimum height (if necessary) to correct
                     // heightmap placement when displaying
-                    if (heights[ny, nx] < MinHeight)
-                        MinHeight = heights[ny, nx];
+                    if (Heights[ny, nx] < MinHeight)
+                        MinHeight = Heights[ny, nx];
                 }
             }
         }
@@ -188,7 +184,7 @@ namespace LandscaperAnts
             // Instantiate each sprite
             for (int i = 0; i < foodAmount; i++)
             {
-                Vector3 spritePos = TexelToVector(foods[i].Cell);
+                Vector3 spritePos = TexelToVector(Foods[i].Cell);
 
                 Object.Instantiate(foodSprite, spritesParent).transform.position = spritePos;
             }

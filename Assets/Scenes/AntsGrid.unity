@@ -332,7 +332,7 @@ Terrain:
   m_DrawTreesAndFoliage: 1
   m_StaticShadowCaster: 0
   m_ReflectionProbeUsage: 1
-  m_MaterialTemplate: {fileID: 10652, guid: 0000000000000000f000000000000000, type: 0}
+  m_MaterialTemplate: {fileID: 2100000, guid: d3b9f6ab55a45b6479efe93071bd3a77, type: 2}
   m_BakeLightProbesForTrees: 1
   m_PreserveTreePrototypeLayers: 0
   m_DeringLightProbesForTrees: 1
@@ -1506,6 +1506,7 @@ MonoBehaviour:
   pheromoneDeposit: 0.8
   maxPheromones: 1
   phEvap: 0.05
+  phDiff: 0.05
   maxSlope: 0.9
   foodHeightIncr: 0.05
   noFoodHeightIncr: 0.002

@@ -459,7 +459,7 @@ namespace LandscaperAnts
         private void UpdatePheromones()
         {
             // Create a copy of the pheromones matrix
-            float[,] newPheromones = (float[,])grid.Pheromones.Clone();
+            float[,] newPheromones = new float[grid.BaseDim, grid.BaseDim];
 
             // Evaporation & Diffusion
             for (int y = 0; y < grid.BaseDim; y++)

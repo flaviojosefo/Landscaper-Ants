@@ -51,9 +51,12 @@ namespace LandscaperAnts
 
         [Header("Display Settings")]
 
+        [SerializeField] private bool displayHeight = true;                 // Display height transformations on terrain?
+        [SerializeField] private bool displayPheromones = true;             // Display pheromone concentrations on terrain?
+        [Space]
         [SerializeField] private TMP_Text stepsUI;
-
         [SerializeField] private GameObject homeSprite;
+        [SerializeField] private Gradient phColorGradient;                  // Color gradient for representation of pheromone amount on the terrain
 
         private Ant[] ants;                                                 // The Ants which will be pathtracing
 
@@ -456,7 +459,7 @@ namespace LandscaperAnts
         private void UpdatePheromones()
         {
             // Create a copy of the pheromones matrix
-            float[,] newPheromones = (float[,])grid.Pheromones.Clone(); 
+            float[,] newPheromones = (float[,])grid.Pheromones.Clone();
 
             // Evaporation & Diffusion
             for (int y = 0; y < grid.BaseDim; y++)
@@ -489,9 +492,8 @@ namespace LandscaperAnts
                     // pheromone concentration in either the cell or its neighbours
                     if ((neighbrsTotalPhCon != 0f) || (currentPhCon != 0f))
                     {
-
                         // Update pheromone value in specific cell based on evaporation and diffusion
-                        newPheromones[y, x] = 
+                        newPheromones[y, x] =
                             (1 - phEvap) * (currentPhCon + (phDiff * ((neighbrsTotalPhCon / neighbours.Length) - currentPhCon)));
                     }
                 }
@@ -579,8 +581,18 @@ namespace LandscaperAnts
             return neighbours.ToArray();
         }
 
-        // Updates the terrain's heightmap
+        // Updates the terrain's components
         private void UpdateTerrain()
+        {
+            if (displayHeight)
+                DisplayHeight();
+
+            if (displayPheromones)
+                DisplayPheromoneColor();
+        }
+
+        // Display height changes on the terrain (applying a new heightmap)
+        private void DisplayHeight()
         {
             // Get the value for translation
             float offset = Mathf.Abs(grid.MinHeight);
@@ -601,6 +613,28 @@ namespace LandscaperAnts
 
             // Lower the terrain's position to compensate the increase in height
             terrain.transform.position = new(-5, grid.MinHeight, -5);
+        }
+
+        // Display pheromone concentration on the terrain as a color from the available gradient
+        private void DisplayPheromoneColor()
+        {
+            Texture2D phTex = new(grid.BaseDim, grid.BaseDim);
+
+            for (int y = 0; y < grid.BaseDim; y++)
+            {
+                for (int x = 0; x < grid.BaseDim; x++)
+                {
+                    float phNormalizedValue = grid.Pheromones[y, x] / maxPheromones;
+
+                    Color gradientColor = phColorGradient.Evaluate(phNormalizedValue);
+
+                    phTex.SetPixel(x, y, gradientColor);
+                }
+            }
+
+            phTex.Apply();
+
+            terrain.materialTemplate.SetTexture("_PheromoneTex", phTex);
         }
 
         // Stops the algorithm
@@ -654,6 +688,10 @@ namespace LandscaperAnts
             stepsUI.text = $"{step}";
 
         // Flatten the heightmap when quitting app
-        private void OnApplicationQuit() => FlattenHeightmap();
+        private void OnApplicationQuit() 
+        { 
+            FlattenHeightmap();
+            terrain.materialTemplate.SetTexture("_PheromoneTex", Texture2D.whiteTexture);
+        }
     }
 }

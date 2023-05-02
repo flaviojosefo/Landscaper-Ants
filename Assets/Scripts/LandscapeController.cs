@@ -37,8 +37,6 @@ namespace LandscaperAnts
         [Space]
         [SerializeField, Range(0, 1)] private float phEvap = 0.05f;         // Pheromone evaporation coefficient
         [SerializeField, Range(0, 1)] private float phDiff = 0.05f;         // Pheromone diffusion coefficient
-        [Space]
-        [SerializeField, Range(0, 1)] private float maxSlope = 0.9f;        // The max slope an Ant can endure
 
         [Header("Heightmap Settings")]
 

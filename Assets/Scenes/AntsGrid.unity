@@ -1503,11 +1503,9 @@ MonoBehaviour:
   slopeWeight: 1
   directionWeight: 1
   randomWeight: 0.1
-  pheromoneDeposit: 0.8
-  maxPheromones: 1
+  pheromoneDeposit: 1
   phEvap: 0.0002
   phDiff: 0.02
-  maxSlope: 0.9
   foodHeightIncr: 0.05
   noFoodHeightIncr: 0.002
   terrain: {fileID: 451495196}
@@ -1519,6 +1517,8 @@ MonoBehaviour:
     baseDim: 513
     foodSprite: {fileID: 7786452733030419128, guid: f3669ae66df5e2e4aa9ab55d14708b33, type: 3}
     spritesParent: {fileID: 1627694049}
+  displayHeight: 1
+  displayPheromones: 1
   stepsUI: {fileID: 901818752}
   homeSprite: {fileID: 7914310464857806456, guid: b988fc258e0871d429e6e5f1cb8a9097, type: 3}
   phColorGradient:

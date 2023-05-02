@@ -13,52 +13,51 @@ namespace LandscaperAnts
     {
         [Header("General Settings")]
 
-        [SerializeField] private bool useSeed = false;                      // Should the algorithm use a fixed seed?
-        [SerializeField] private int rndSeed = -188287030;                  // The user given random controlling seed
+        [SerializeField] private bool useSeed = false;                        // Should the algorithm use a fixed seed?
+        [SerializeField] private int rndSeed = -188287030;                    // The user given random controlling seed
         [Space]
-        [SerializeField] private bool shuffleAnts = false;                  // Should Ants be shuffled when iterated?
-        [SerializeField] private bool individualStart = false;              // Should Ants' starting position be randomly different between eachother?
+        [SerializeField] private bool shuffleAnts = false;                    // Should Ants be shuffled when iterated?
+        [SerializeField] private bool individualStart = false;                // Should Ants' starting position be randomly different between eachother?
 
-        [SerializeField, Range(1, 500)] private int nAnts = 2;              // The amount of Ants
+        [SerializeField, Range(1, 500)] private int nAnts = 2;                // The amount of Ants
 
-        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;   // The number of steps an Ant can perform
+        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;     // The number of steps an Ant can perform
 
         [Header("Behavioural Settings")]
 
-        [SerializeField] private bool antsInPlace = false;                  // Should Ants be able to select the next cell as the one they're on?
+        [SerializeField] private bool antsInPlace = false;                    // Should Ants be able to select the next cell as the one they're on?
         [Space]
-        [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;    // Pheromone weight used on cell selection
-        [SerializeField, Range(0, 1)] private float slopeWeight = 1;        // Slope weight used on cell selection
-        [SerializeField, Range(0, 1)] private float directionWeight = 1;    // Direction (to starting cell) weight used on cell selection
-        [SerializeField, Range(0, 1)] private float randomWeight = 1;       // Random weight used on cell selection
+        [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;      // Pheromone weight used on cell selection
+        [SerializeField, Range(0, 1)] private float slopeWeight = 1;          // Slope weight used on cell selection
+        [SerializeField, Range(0, 1)] private float directionWeight = 1;      // Direction (to starting cell) weight used on cell selection
+        [SerializeField, Range(0, 1)] private float randomWeight = 1;         // Random weight used on cell selection
         [Space]
-        [SerializeField] private float pheromoneDeposit = 0.1f;             // The pheromone value that ants deposit on a given cell
-        [SerializeField, Range(1, 10)] private float maxPheromones = 1;     // The max amount of pheromones allowed to be on any given cell
+        [SerializeField, Range(0, 1)] private float pheromoneDeposit = 0.1f;  // The pheromone value that ants deposit on a given cell
         [Space]
-        [SerializeField, Range(0, 1)] private float phEvap = 0.05f;         // Pheromone evaporation coefficient
-        [SerializeField, Range(0, 1)] private float phDiff = 0.05f;         // Pheromone diffusion coefficient
+        [SerializeField, Range(0, 1)] private float phEvap = 0.05f;           // Pheromone evaporation coefficient
+        [SerializeField, Range(0, 1)] private float phDiff = 0.05f;           // Pheromone diffusion coefficient
 
         [Header("Heightmap Settings")]
 
-        [SerializeField] private float foodHeightIncr = 0.02f;              // The height value that ants that have food remove from a given cell
-        [SerializeField] private float noFoodHeightIncr = 0.01f;            // The height value that ants that DON'T have food remove from a given cell
+        [SerializeField] private float foodHeightIncr = 0.02f;                // The height value that ants that have food remove from a given cell
+        [SerializeField] private float noFoodHeightIncr = 0.01f;              // The height value that ants that DON'T have food remove from a given cell
 
-        [SerializeField] private Terrain terrain;                           // The terrain that will be affected by the heightmap changes
+        [SerializeField] private Terrain terrain;                             // The terrain that will be affected by the heightmap changes
 
-        [SerializeField, Space] private Grid grid;                          // The collection of nodes and respective cost and pheromone matrices
+        [SerializeField, Space] private Grid grid;                            // The collection of nodes and respective cost and pheromone matrices
 
         [Header("Display Settings")]
 
-        [SerializeField] private bool displayHeight = true;                 // Display height transformations on terrain?
-        [SerializeField] private bool displayPheromones = true;             // Display pheromone concentrations on terrain?
+        [SerializeField] private bool displayHeight = true;                   // Display height transformations on terrain?
+        [SerializeField] private bool displayPheromones = true;               // Display pheromone concentrations on terrain?
         [Space]
         [SerializeField] private TMP_Text stepsUI;
         [SerializeField] private GameObject homeSprite;
-        [SerializeField] private Gradient phColorGradient;                  // Color gradient for representation of pheromone amount on the terrain
+        [SerializeField] private Gradient phColorGradient;                    // Color gradient for representation of pheromone amount on the terrain
 
-        private Ant[] ants;                                                 // The Ants which will be pathtracing
+        private Ant[] ants;                                                   // The Ants which will be pathtracing
 
-        private Coroutine antWork;                                          // The coroutine for the algorithm's main loop (1 iteration/step per frame)
+        private Coroutine antWork;                                            // The coroutine for the algorithm's main loop (1 iteration/step per frame)
 
         // Method to generate a new graph
         public void GenerateGrid()
@@ -207,7 +206,7 @@ namespace LandscaperAnts
                             grid.Pheromones[current.y, current.x] + ants[i].DropPheromone(pheromoneDeposit);
 
                         // Apply the new value but clamp between a min and max
-                        grid.Pheromones[current.y, current.x] = Mathf.Clamp(newPheromoneValue, 0, maxPheromones);
+                        grid.Pheromones[current.y, current.x] = Mathf.Clamp(newPheromoneValue, 0f, 1f);
                     }
                 }
                 else
@@ -345,15 +344,15 @@ namespace LandscaperAnts
                 float neighbourHeight = grid.Heights[n.y, n.x] + offset;
                 neighbourHeight /= (offset == 0 ? 1 : offset);
 
-                slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight, slopeWeight);
+                slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight) * slopeWeight;
                 //slopePortions[i] = CalcSlopePortionDOWN(grid.Heights[n.y, n.x], minHeight, maxHeight, 0.0f);
 
                 // destination is null = exploring = the ant has no food
                 if (destination is null)
                 {
-                    pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x], pheromoneWeight);
+                    pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x]) * pheromoneWeight;
 
-                    randomPortions[i] = CalcRandomPortion(randomWeight);
+                    randomPortions[i] = CalcRandomPortion() * randomWeight;
                 }
                 else
                 {
@@ -363,7 +362,7 @@ namespace LandscaperAnts
                     Vector2Int direction = n - current;
                     float angle = Vector2.Angle(mainDirection, direction);
 
-                    directionPortions[i] = CalcDirectionPortion(angle, directionWeight);
+                    directionPortions[i] = CalcDirectionPortion(angle) * directionWeight;
                 }
 
                 totalSum += pheromonePortions[i] + slopePortions[i] + directionPortions[i] + randomPortions[i];
@@ -389,20 +388,20 @@ namespace LandscaperAnts
         // Graphics with the functions present below
         // https://www.desmos.com/calculator/gc1pygvebj
 
-        private float CalcDirectionPortion(float angle, float weight)
+        private float CalcDirectionPortion(float angle)
         {
-            return (1f - (angle / 180f)) * weight;
+            return 1f - (angle / 180f);
         }
 
-        private float CalcPheromonePortion(float ph, float weight)
+        private float CalcPheromonePortion(float ph)
         {
-            return (ph / maxPheromones) * weight;
+            return ph;
         }
 
-        private float CalcSlopePortion(float from, float to, float weight)
+        private float CalcSlopePortion(float from, float to)
         {
             // The terrain must go from height of 0-1
-            return (1f - Mathf.Abs(to - from)) * weight;
+            return (1f - Mathf.Abs(to - from));
         }
 
         private float CalcSlopePortionNEW(float height, float minHeight, float maxHeight)
@@ -419,9 +418,9 @@ namespace LandscaperAnts
             return 1f - (((height - min) / (max - min)) * (1f - minPerct));
         }
 
-        private float CalcRandomPortion(float weight)
+        private float CalcRandomPortion()
         {
-            return Random.value * weight;
+            return Random.value;
         }
 
         // Choose a random member of a collection based on a roulette wheel operation
@@ -622,9 +621,7 @@ namespace LandscaperAnts
             {
                 for (int x = 0; x < grid.BaseDim; x++)
                 {
-                    float phNormalizedValue = grid.Pheromones[y, x] / maxPheromones;
-
-                    Color gradientColor = phColorGradient.Evaluate(phNormalizedValue);
+                    Color gradientColor = phColorGradient.Evaluate(grid.Pheromones[y, x]);
 
                     phTex.SetPixel(x, y, gradientColor);
                 }

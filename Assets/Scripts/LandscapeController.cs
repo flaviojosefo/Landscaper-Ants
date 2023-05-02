@@ -482,7 +482,7 @@ namespace LandscaperAnts
                         Vector2Int n = neighbours[k];
 
                         // Increase total concentration only if coordinates are inside of the available 2D space
-                        if (n.x > 0 && n.y > 0 && n.x < grid.BaseDim && n.y < grid.BaseDim)
+                        if (n.x >= 0 && n.y >= 0 && n.x < grid.BaseDim && n.y < grid.BaseDim)
                         {
                             neighbrsTotalPhCon += grid.Pheromones[n.y, n.x];
                         }

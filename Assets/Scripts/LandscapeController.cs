@@ -334,8 +334,10 @@ namespace LandscaperAnts
                 Vector2Int n = neighbours[i];
 
                 // Calculate slope portion outside of the if, since it's common between both types of ants (with food vs no food)
+                // Apply a value of 1 to all neighbours's slope portion if there is no difference between the min and max heights
 
-                slopePortions[i] = CalcSlopePortion(grid.Heights[n.y, n.x], minHeight, maxHeight, 0f) * slopeWeight;
+                slopePortions[i] = minHeight == maxHeight ? 
+                    1f : CalcSlopePortion(grid.Heights[n.y, n.x], minHeight, maxHeight, 0f) * slopeWeight;
 
                 // destination is null = exploring = the ant has no food
                 if (destination is null)

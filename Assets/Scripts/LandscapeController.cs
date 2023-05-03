@@ -310,13 +310,7 @@ namespace LandscaperAnts
             float[] directionPortions = new float[neighboursAmount];
             float[] randomPortions = new float[neighboursAmount];
 
-            //float offset = Mathf.Abs(grid.MinHeight);
-
-            //float currentHeight = grid.Heights[current.y, current.x] + offset;
-            //currentHeight /= (offset == 0 ? 1 : offset);
-
             // Fetch min/max height
-
             float minHeight = grid.Heights[current.y, current.x];
             float maxHeight = minHeight;
 
@@ -341,11 +335,7 @@ namespace LandscaperAnts
 
                 // Calculate slope portion outside of the if, since it's common between both types of ants (with food vs no food)
 
-                //float neighbourHeight = grid.Heights[n.y, n.x] + offset;
-                //neighbourHeight /= (offset == 0 ? 1 : offset);
-
-                //slopePortions[i] = CalcSlopePortion(currentHeight, neighbourHeight) * slopeWeight;
-                slopePortions[i] = CalcSlopePortionDOWN(grid.Heights[n.y, n.x], minHeight, maxHeight, 0.0f) * slopeWeight;
+                slopePortions[i] = CalcSlopePortion(grid.Heights[n.y, n.x], minHeight, maxHeight, 0f) * slopeWeight;
 
                 // destination is null = exploring = the ant has no food
                 if (destination is null)
@@ -398,19 +388,8 @@ namespace LandscaperAnts
             return ph;
         }
 
-        private float CalcSlopePortion(float from, float to)
-        {
-            // The terrain must go from height of 0-1
-            return (1f - Mathf.Abs(to - from));
-        }
-
-        private float CalcSlopePortionNEW(float height, float minHeight, float maxHeight)
-        {
-            return 1f - Mathf.Abs(((height - minHeight) / (maxHeight - minHeight)) * 2f - 1f);
-        }
-
         // NEW: https://www.desmos.com/calculator/xictvlxuyj
-        private float CalcSlopePortionDOWN(float height, float min, float max, float minPerct = 0f)
+        private float CalcSlopePortion(float height, float min, float max, float minPerct = 0f)
         {
             // minPerct is the percentage that will be available at max(height)
             // this changes the function's output from 0-1 to minPerct-1
@@ -491,7 +470,7 @@ namespace LandscaperAnts
                     {
                         // Update pheromone value in specific cell based on evaporation and diffusion
                         newPheromones[y, x] =
-                            (1 - phEvap) * (currentPhCon + (phDiff * ((neighbrsTotalPhCon / neighbours.Length) - currentPhCon)));
+                            (1f - phEvap) * (currentPhCon + (phDiff * ((neighbrsTotalPhCon / neighbours.Length) - currentPhCon)));
                     }
                 }
             }

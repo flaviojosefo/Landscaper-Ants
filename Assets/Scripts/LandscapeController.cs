@@ -354,7 +354,10 @@ namespace LandscaperAnts
                     Vector2Int direction = n - current;
                     float angle = Vector2.Angle(mainDirection, direction);
 
-                    directionPortions[i] = CalcDirectionPortion(angle) * directionWeight;
+                    // If the ants are allowed to stay in the same cell and that's the cell being evaluated
+                    // calculate its direction portion as 0 (i.e. the ant doesn't like it)
+                    directionPortions[i] = antsInPlace && direction == Vector2Int.zero ?
+                        0f : CalcDirectionPortion(angle) * directionWeight;
                 }
 
                 totalSum += pheromonePortions[i] + slopePortions[i] + directionPortions[i] + randomPortions[i];

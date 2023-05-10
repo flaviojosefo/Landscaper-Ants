@@ -21,16 +21,17 @@ namespace LandscaperAnts
 
         [SerializeField, Range(1, 500)] private int nAnts = 2;                // The amount of Ants
 
-        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;     // The number of steps an Ant can perform
+        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;     // The number of steps any Ant can perform
 
         [Header("Behavioural Settings")]
 
         [SerializeField] private bool antsInPlace = false;                    // Should Ants be able to select the next cell as the one they're on?
+        [SerializeField] private bool absSlope = false;                       // Controls whether Ants should use the absolute of slopes or a min/max method
         [Space]
-        [SerializeField, Range(0, 1)] private float pheromoneWeight = 1;      // Pheromone weight used on cell selection
-        [SerializeField, Range(0, 1)] private float slopeWeight = 1;          // Slope weight used on cell selection
-        [SerializeField, Range(0, 1)] private float directionWeight = 1;      // Direction (to starting cell) weight used on cell selection
-        [SerializeField, Range(0, 1)] private float randomWeight = 1;         // Random weight used on cell selection
+        [SerializeField, Range(0, 1)] private float pheromoneWeight = 1f;     // Pheromone weight used on cell selection
+        [SerializeField, Range(0, 1)] private float slopeWeight = 1f;         // Slope weight used on cell selection
+        [SerializeField, Range(0, 1)] private float directionWeight = 1f;     // Direction (to starting cell) weight used on cell selection
+        [SerializeField, Range(0, 1)] private float randomWeight = 1f;        // Random weight used on cell selection
         [Space]
         [SerializeField, Range(0, 1)] private float pheromoneDeposit = 0.1f;  // The pheromone value that ants deposit on a given cell
         [Space]
@@ -310,20 +311,15 @@ namespace LandscaperAnts
             float[] directionPortions = new float[neighboursAmount];
             float[] randomPortions = new float[neighboursAmount];
 
+            // Get the current cell's height
+            float currentHeight = grid.Heights[current.y, current.x];
+
             // Fetch min/max height
-            float minHeight = grid.Heights[current.y, current.x];
-            float maxHeight = minHeight;
+            float minHeight = currentHeight;
+            float maxHeight = currentHeight;
 
-            for (int i = 0; i < neighboursAmount; i++)
-            {
-                float nHeight = grid.Heights[neighbours[i].y, neighbours[i].x];
-
-                if (nHeight < minHeight)
-                    minHeight = nHeight;
-
-                if (nHeight > maxHeight)
-                    maxHeight = nHeight;
-            }
+            // Fetch neighbours' heights and override min/max heights if others are found
+            float[] nHeights = FetchNeighboursHeights(neighbours, ref minHeight, ref maxHeight);
 
             // Calculate individual variable influences and save their sum
 
@@ -331,18 +327,33 @@ namespace LandscaperAnts
 
             for (int i = 0; i < neighboursAmount; i++)
             {
-                Vector2Int n = neighbours[i];
-
                 // Calculate slope portion outside of the if, since it's common between both types of ants (with food vs no food)
-                // Apply a value of 1 to all neighbours's slope portion if there is no difference between the min and max heights
+                if (minHeight == maxHeight)
+                {
+                    // Apply a value of 1 to all neighbours's slope portion if there is no difference between the min and max heights
+                    slopePortions[i] = 1f;
+                } 
+                else
+                {
+                    if (absSlope)
+                    {
+                        float minSlope = minHeight - currentHeight;
+                        float maxSlope = maxHeight - currentHeight;
 
-                slopePortions[i] = minHeight == maxHeight ? 
-                    1f : CalcSlopePortion(grid.Heights[n.y, n.x], minHeight, maxHeight, 0f) * slopeWeight;
+                        // This method uses slope differences between the ant's cell and its neighbours
+                        slopePortions[i] = CalcSlopePortion(currentHeight, nHeights[i], minSlope, maxSlope) * slopeWeight;
+                    }
+                    else
+                    {
+                        // This method uses height min/max by normalizing the ant's cell and its neighbours
+                        slopePortions[i] = CalcSlopePortion(nHeights[i], minHeight, maxHeight) * slopeWeight;
+                    }
+                }
 
                 // destination is null = exploring = the ant has no food
                 if (destination is null)
                 {
-                    pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[n.y, n.x]) * pheromoneWeight;
+                    pheromonePortions[i] = CalcPheromonePortion(grid.Pheromones[neighbours[i].y, neighbours[i].x]) * pheromoneWeight;
 
                     randomPortions[i] = CalcRandomPortion() * randomWeight;
                 }
@@ -351,7 +362,7 @@ namespace LandscaperAnts
                     Vector2Int mainDirection = (Vector2Int)destination - current;
 
                     // Calculate direction and angle with [origin to destination] vector
-                    Vector2Int direction = n - current;
+                    Vector2Int direction = neighbours[i] - current;
                     float angle = Vector2.Angle(mainDirection, direction);
 
                     // If the ants are allowed to stay in the same cell and that's the cell being evaluated
@@ -393,6 +404,7 @@ namespace LandscaperAnts
             return ph;
         }
 
+        // Uses the Min and Max heights
         // NEW: https://www.desmos.com/calculator/xictvlxuyj
         private float CalcSlopePortion(float height, float min, float max, float minPerct = 0f)
         {
@@ -402,9 +414,40 @@ namespace LandscaperAnts
             return 1f - (((height - min) / (max - min)) * (1f - minPerct));
         }
 
+        // Uses the Absolute of surrounding heights and corresponding slopes
+        // https://www.desmos.com/calculator/n7ruqu89me
+        private float CalcSlopePortion(float from, float to, float minSlope, float maxSlope, float minPerct = 0f)
+        {
+            return 1f - (((to - from - minSlope) / (maxSlope - minSlope)) * (1f - minPerct));
+        }
+
         private float CalcRandomPortion()
         {
             return Random.value;
+        }
+
+        // Fetches the height values of the found neighbours
+        private float[] FetchNeighboursHeights(Vector2Int[] neighbours, 
+            ref float minHeight, ref float maxHeight)
+        {
+            float[] heights = new float[neighbours.Length];
+
+            for (int i = 0; i < neighbours.Length; i++)
+            {
+                float nHeight = absSlope ?
+                    Math.Abs(grid.Heights[neighbours[i].y, neighbours[i].x]) :
+                    grid.Heights[neighbours[i].y, neighbours[i].x];
+
+                if (nHeight < minHeight)
+                    minHeight = nHeight;
+
+                if (nHeight > maxHeight)
+                    maxHeight = nHeight;
+
+                heights[i] = nHeight;
+            }
+
+            return heights;
         }
 
         // Choose a random member of a collection based on a roulette wheel operation

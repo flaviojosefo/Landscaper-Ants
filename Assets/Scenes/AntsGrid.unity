@@ -1499,7 +1499,7 @@ MonoBehaviour:
   nAnts: 250
   maxSteps: 10000
   antsInPlace: 0
-  absSlope: 0
+  absSlope: 1
   pheromoneWeight: 1
   slopeWeight: 1
   directionWeight: 1

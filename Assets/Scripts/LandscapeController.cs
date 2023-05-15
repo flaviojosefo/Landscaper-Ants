@@ -347,11 +347,11 @@ namespace LandscaperAnts
 
                         float maxAbsDiff = minAbs > maxAbs ? minAbs : maxAbs;
 
-                        slopePortions[i] = CalcSlopePortion(currentHeight, nHeights[i], maxAbsDiff);
+                        slopePortions[i] = CalcSlopePortion(currentHeight, nHeights[i], maxAbsDiff) * slopeWeight;
                     }
                     else
                     {
-                        slopePortions[i] = CalcSlopePortion(currentHeight, nHeights[i], minDiff, maxDiff);
+                        slopePortions[i] = CalcSlopePortion(currentHeight, nHeights[i], minDiff, maxDiff) * slopeWeight;
                     }
                 }
 
@@ -409,32 +409,17 @@ namespace LandscaperAnts
             return ph;
         }
 
+        // Cells with less slope are preferential; all cells are treated as positive values
         private float CalcSlopePortion(float from, float to, float maxDiff)
         {
             return 1f - (Mathf.Abs(to - from) / maxDiff);
         }
 
+        // Cells with lower height values are preferential
         private float CalcSlopePortion(float from, float to, float minDiff, float maxDiff)
         {
             return 1f - ((to - from + Mathf.Abs(minDiff)) / (Mathf.Abs(minDiff) + Mathf.Abs(maxDiff)));
         }
-
-        // Uses the Min and Max heights
-        // NEW: https://www.desmos.com/calculator/xictvlxuyj
-        //private float CalcSlopePortion(float height, float min, float max, float minPerct = 0f)
-        //{
-        //    // minPerct is the percentage that will be available at max(height)
-        //    // this changes the function's output from 0-1 to minPerct-1
-
-        //    return 1f - (((height - min) / (max - min)) * (1f - minPerct));
-        //}
-
-        //// Uses the Absolute of surrounding heights and corresponding slopes
-        //// https://www.desmos.com/calculator/n7ruqu89me
-        //private float CalcSlopePortion(float from, float to, float minSlope, float maxSlope, float minPerct = 0f)
-        //{
-        //    return 1f - (((to - from - minSlope) / (maxSlope - minSlope)) * (1f - minPerct));
-        //}
 
         private float CalcRandomPortion()
         {

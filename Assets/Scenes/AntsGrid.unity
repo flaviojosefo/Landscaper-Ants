@@ -1494,12 +1494,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useSeed: 1
   rndSeed: 182912
-  shuffleAnts: 0
+  shuffleAnts: 1
   individualStart: 1
   nAnts: 250
   maxSteps: 10000
   antsInPlace: 0
-  absSlope: 1
+  absSlope: 0
   pheromoneWeight: 1
   slopeWeight: 1
   directionWeight: 1

@@ -181,7 +181,7 @@ namespace LandscaperAnts
                 Vector2Int next;
 
                 // Get the (moore) neighbours of the current cell (can include itself)
-                Vector2Int[] neighbours = GetMooreNeighbours(current, antsInPlace);
+                IList<Vector2Int> neighbours = GetMooreNeighbours(current, antsInPlace);
 
                 // Check if the Ant is "carrying" food
                 if (ants[i].HasFood())
@@ -302,9 +302,9 @@ namespace LandscaperAnts
         }
 
         // Returns the point the Ant will move towards
-        private Vector2Int GetNextPoint(Vector2Int[] neighbours, Vector2Int current, Vector2Int? destination = null)
+        private Vector2Int GetNextPoint(IList<Vector2Int> neighbours, Vector2Int current, Vector2Int? destination = null)
         {
-            int neighboursAmount = neighbours.Length;
+            int neighboursAmount = neighbours.Count;
 
             float[] pheromonePortions = new float[neighboursAmount];
             float[] slopePortions = new float[neighboursAmount];
@@ -427,12 +427,12 @@ namespace LandscaperAnts
         }
 
         // Fetches the height values of the found neighbours
-        private float[] FetchNeighboursHeights(Vector2Int[] neighbours, 
+        private float[] FetchNeighboursHeights(IList<Vector2Int> neighbours, 
             ref float minHeight, ref float maxHeight)
         {
-            float[] heights = new float[neighbours.Length];
+            float[] heights = new float[neighbours.Count];
 
-            for (int i = 0; i < neighbours.Length; i++)
+            for (int i = 0; i < neighbours.Count; i++)
             {
                 float nHeight = grid.Heights[neighbours[i].y, neighbours[i].x];
 
@@ -449,7 +449,7 @@ namespace LandscaperAnts
         }
 
         // Choose a random member of a collection based on a roulette wheel operation
-        private T ChooseRandom<T>(T[] collection, (int index, float percentage)[] probabilities)
+        private T ChooseRandom<T>(IList<T> collection, (int index, float percentage)[] probabilities)
         {
             // ##### ROULETTE WHEEL #####
 
@@ -543,12 +543,12 @@ namespace LandscaperAnts
         }
 
         // Checks if the Ant is next to a food source
-        private bool FoundFood(Vector2Int[] neighbours, out Food food)
+        private bool FoundFood(IList<Vector2Int> neighbours, out Food food)
         {
             // Returns true if one of the neighbouring cells is a food source
             for (int i = 0; i < grid.Foods.Length; i++)
             {
-                for (int j = 0; j < neighbours.Length; j++)
+                for (int j = 0; j < neighbours.Count; j++)
                 {
                     if (grid.Foods[i].Cell == neighbours[j])
                     {
@@ -568,7 +568,7 @@ namespace LandscaperAnts
         }
 
         // Search for a point's neighbours using Moore's neighbourhood algorithm
-        private Vector2Int[] GetMooreNeighbours(Vector2Int p, bool includeOrigin = false)
+        private IList<Vector2Int> GetMooreNeighbours(Vector2Int p, bool includeOrigin = false)
         {
             // The list of neighbours to find
             List<Vector2Int> neighbours = new();
@@ -600,7 +600,7 @@ namespace LandscaperAnts
             }
 
             // Convert the list to an array and return it
-            return neighbours.ToArray();
+            return neighbours;
         }
 
         // Updates the terrain's components

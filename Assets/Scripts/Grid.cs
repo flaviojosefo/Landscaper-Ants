@@ -15,7 +15,6 @@ namespace LandscaperAnts
         private bool flatTerrain = true;
 
         [SerializeField]
-        [Range(1, 100)]
         [Tooltip("The amount of food to generate")]
         private int foodAmount = 4;
 

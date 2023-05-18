@@ -6,61 +6,164 @@ using UnityEngine;
 using Generator;
 using TMPro;
 using Random = UnityEngine.Random;
+using NaughtyAttributes;
 
 namespace LandscaperAnts
 {
     public sealed class LandscapeController : MonoBehaviour
     {
-        [Header("General Settings")]
+        // ----- Constants -----
+        private const string GeneralParams = "General Parameters";
+        private const string BehaviouralParams = "Behavioural Parameters";
+        private const string HeightmapParams = "Heightmap Parameters";
+        private const string DisplayParams = "Display Parameters";
 
-        [SerializeField] private bool useSeed = false;                        // Should the algorithm use a fixed seed?
-        [SerializeField] private int rndSeed = -188287030;                    // The user given random controlling seed
+        // ----- Private EDITOR config parameters -----
+
+        // Should the algorithm use a fixed seed?
+        [BoxGroup(GeneralParams)]
+        [SerializeField]
+        private bool useSeed = false;
+
+        // The user given random controlling seed
+        [BoxGroup(GeneralParams)]
+        [SerializeField]
+        [EnableIf(nameof(useSeed))]
+        private int rndSeed = -188287030;
+
+        // Should Ants be shuffled when iterated?
         [Space]
-        [SerializeField] private bool shuffleAnts = false;                    // Should Ants be shuffled when iterated?
-        [SerializeField] private bool individualStart = false;                // Should Ants' starting position be randomly different between eachother?
+        [BoxGroup(GeneralParams)]
+        [SerializeField]
+        private bool shuffleAnts = false;
 
-        [SerializeField, Range(1, 500)] private int nAnts = 2;                // The amount of Ants
+        // Should Ants' starting position be randomly different between each other?
+        [BoxGroup(GeneralParams)]
+        [SerializeField]
+        private bool individualStart = false;
 
-        [SerializeField, Range(1, 100000)] private float maxSteps = 1000;     // The number of steps any Ant can perform
+        // The amount of Ants
+        [BoxGroup(GeneralParams)]
+        [Range(1, 500)]
+        [SerializeField]
+        private int nAnts = 2;
 
-        [Header("Behavioural Settings")]
+        // The number of steps any Ant can perform
+        [BoxGroup(GeneralParams)]
+        [Range(1, 100000)]
+        [SerializeField]
+        private float maxSteps = 1000;
 
-        [SerializeField] private bool antsInPlace = false;                    // Should Ants be able to select the next cell as the one they're on?
-        [SerializeField] private bool absSlope = false;                       // Controls whether Ants should use the absolute of slopes or a min/max method
+        // Should Ants be able to select the next cell as the one they're on?
+        [BoxGroup(BehaviouralParams)]
+        [SerializeField]
+        private bool antsInPlace = false;
+
+        // Controls whether Ants should use the absolute of slopes or a min/max method
+        [BoxGroup(BehaviouralParams)]
+        [SerializeField]
+        private bool absSlope = false;
+
+        // Pheromone weight used on cell selection
+        [BoxGroup(BehaviouralParams)]
         [Space]
-        [SerializeField, Range(0, 1)] private float pheromoneWeight = 1f;     // Pheromone weight used on cell selection
-        [SerializeField, Range(0, 1)] private float slopeWeight = 1f;         // Slope weight used on cell selection
-        [SerializeField, Range(0, 1)] private float directionWeight = 1f;     // Direction (to starting cell) weight used on cell selection
-        [SerializeField, Range(0, 1)] private float randomWeight = 1f;        // Random weight used on cell selection
+        [Range(0, 1)]
+        [SerializeField]
+        private float pheromoneWeight = 1f;
+
+        // Slope weight used on cell selection
+        [BoxGroup(BehaviouralParams)]
+        [Range(0, 1)]
+        [SerializeField]
+        private float slopeWeight = 1f;
+
+        // Direction (to starting cell) weight used on cell selection
+        [BoxGroup(BehaviouralParams)]
+        [Range(0, 1)]
+        [SerializeField]
+        private float directionWeight = 1f;
+
+        // Random weight used on cell selection
+        [BoxGroup(BehaviouralParams)]
+        [Range(0, 1)]
+        [SerializeField]
+        private float randomWeight = 1f;
+
+        // The pheromone value that ants deposit on a given cell
+        [BoxGroup(BehaviouralParams)]
         [Space]
-        [SerializeField, Range(0, 1)] private float pheromoneDeposit = 0.1f;  // The pheromone value that ants deposit on a given cell
+        [Range(0, 1)]
+        [SerializeField]
+        private float pheromoneDeposit = 0.1f;
+
+        // Pheromone evaporation coefficient
+        [BoxGroup(BehaviouralParams)]
         [Space]
-        [SerializeField, Range(0, 1)] private float phEvap = 0.05f;           // Pheromone evaporation coefficient
-        [SerializeField, Range(0, 1)] private float phDiff = 0.05f;           // Pheromone diffusion coefficient
+        [Range(0, 1)]
+        [SerializeField]
+        private float phEvap = 0.05f;
 
-        [Header("Heightmap Settings")]
+        // Pheromone diffusion coefficient
+        [BoxGroup(BehaviouralParams)]
+        [Range(0, 1)]
+        [SerializeField]
+        private float phDiff = 0.05f;
 
-        [SerializeField] private float foodHeightIncr = 0.02f;                // The height value that ants that have food remove from a given cell
-        [SerializeField] private float noFoodHeightIncr = 0.01f;              // The height value that ants that DON'T have food remove from a given cell
+        // The height value that ants that have food remove from a given cell
+        [BoxGroup(HeightmapParams)]
+        [SerializeField]
+        private float foodHeightIncr = 0.02f;
 
-        [SerializeField] private Terrain terrain;                             // The terrain that will be affected by the heightmap changes
+        // The height value that ants that DON'T have food remove from a given cell
+        [BoxGroup(HeightmapParams)]
+        [SerializeField]
+        private float noFoodHeightIncr = 0.01f;
 
-        [SerializeField, Space] private Grid grid;                            // The collection of nodes and respective cost and pheromone matrices
+        // The terrain that will be affected by the heightmap changes
+        [BoxGroup(HeightmapParams)]
+        [SerializeField]
+        private Terrain terrain;
 
-        [Header("Display Settings")]
-
-        [SerializeField] private bool displayHeight = true;                   // Display height transformations on terrain?
-        [SerializeField] private bool displayPheromones = true;               // Display pheromone concentrations on terrain?
+        // The collection of nodes and respective cost and pheromone matrices
         [Space]
-        [SerializeField] private TMP_Text stepsUI;
-        [SerializeField] private GameObject homeSprite;
-        [SerializeField] private Gradient phColorGradient;                    // Color gradient for representation of pheromone amount on the terrain
+        [BoxGroup()]
+        [SerializeField]
+        private Grid grid;
 
-        private Ant[] ants;                                                   // The Ants which will be pathtracing
+        // Display height transformations on terrain?
+        [BoxGroup(DisplayParams)]
+        [SerializeField]
+        private bool displayHeight = true;
 
-        private Coroutine antWork;                                            // The coroutine for the algorithm's main loop (1 iteration/step per frame)
+        // Display pheromone concentrations on terrain?
+        [BoxGroup(DisplayParams)]
+        [SerializeField] private bool displayPheromones = true;
 
-        // Method to generate a new graph
+        // The text display for the step count
+        [BoxGroup(DisplayParams)]
+        [Space]
+        [SerializeField]
+        private TMP_Text stepsUI;
+
+        // The sprite used in locating the ants' colony
+        [BoxGroup(DisplayParams)]
+        [SerializeField]
+        private GameObject homeSprite;
+
+        // Color gradient for representation of pheromone amount on the terrain
+        [BoxGroup(DisplayParams)]
+        [SerializeField]
+        private Gradient phColorGradient;
+
+        // ----- Private instance variables -----
+
+        // The Ants which will be pathtracing
+        private Ant[] ants;
+
+        // The coroutine for the algorithm's main loop (1 step per frame)
+        private Coroutine antWork;
+
+        // Method to generate a new grid
         public void GenerateGrid()
         {
             // Return if the algorithm is executing
@@ -203,7 +306,7 @@ namespace LandscaperAnts
                         next = GetNextPoint(neighbours, current, ants[i].ColonyCell);
 
                         // Increment the value of pheromone deposit on the selected cell
-                        float newPheromoneValue = 
+                        float newPheromoneValue =
                             grid.Pheromones[current.y, current.x] + ants[i].DropPheromone(pheromoneDeposit);
 
                         // Apply the new value but clamp between a min and max
@@ -332,7 +435,7 @@ namespace LandscaperAnts
                 {
                     // Apply a value of 1 to all neighbours's slope portion if there is no difference between the min and max heights
                     slopePortions[i] = 1f;
-                } 
+                }
                 else
                 {
                     // Get height differences between min/max and the ant's cell's height
@@ -427,7 +530,7 @@ namespace LandscaperAnts
         }
 
         // Fetches the height values of the found neighbours
-        private float[] FetchNeighboursHeights(IList<Vector2Int> neighbours, 
+        private float[] FetchNeighboursHeights(IList<Vector2Int> neighbours,
             ref float minHeight, ref float maxHeight)
         {
             float[] heights = new float[neighbours.Count];
@@ -708,8 +811,8 @@ namespace LandscaperAnts
             stepsUI.text = $"{step}";
 
         // Flatten the heightmap when quitting app
-        private void OnApplicationQuit() 
-        { 
+        private void OnApplicationQuit()
+        {
             FlattenHeightmap();
             terrain.materialTemplate.SetTexture("_PheromoneTex", Texture2D.whiteTexture);
         }

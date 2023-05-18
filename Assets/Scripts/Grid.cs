@@ -53,7 +53,7 @@ namespace LandscaperAnts
 
             CreateMatrices();
 
-            DisplayFoodSprites();
+            //DisplayFoodSprites();
         }
 
         // Create a collection of points on random positions

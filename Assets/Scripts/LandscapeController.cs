@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 using Generator;
-using TMPro;
 using Random = UnityEngine.Random;
-using NaughtyAttributes;
+using System.Diagnostics;
+using UnityEditor;
 
 namespace LandscaperAnts
 {
@@ -137,13 +137,8 @@ namespace LandscaperAnts
 
         // Display pheromone concentrations on terrain?
         [BoxGroup(DisplayParams)]
-        [SerializeField] private bool displayPheromones = true;
-
-        // The text display for the step count
-        [BoxGroup(DisplayParams)]
-        [Space]
         [SerializeField]
-        private TMP_Text stepsUI;
+        private bool displayPheromones = true;
 
         // The sprite used in locating the ants' colony
         [BoxGroup(DisplayParams)]
@@ -160,44 +155,30 @@ namespace LandscaperAnts
         // The Ants which will be pathtracing
         private Ant[] ants;
 
-        // The coroutine for the algorithm's main loop (1 step per frame)
-        private Coroutine antWork;
-
-        // Method to generate a new grid
-        public void GenerateGrid()
+        [Button("Start", EButtonEnableMode.Editor)]
+        private void StartAlgorithm()
         {
-            // Return if the algorithm is executing
-            if (antWork is not null)
-                return;
-
             // Assign a seed, if requested
             if (useSeed)
                 Random.InitState(rndSeed);
 
-            // Reset heightmap
-            FlattenHeightmap();
+            // Reset terrain's components
+            ResetTerrain();
+            
+            // Start a timer to measure total algorithm time
+            Stopwatch sw = Stopwatch.StartNew();
 
-            // Create graph and cost and pheromone matrices
+            // Create grid with height/pheromone matrices
             grid.Generate();
+
+            print("----- Generated NEW Grid -----");
 
             // Create a lump, to test the ants' dodging capabilities (or lack thereof)
             //grid.AddLump(new(380, 201), 15, 1f, 2f);
-            print("----- Generated NEW Graph -----");
-        }
-
-        // Method to generate trails
-        public void StartAnts()
-        {
-            if (antWork is not null && grid.Foods is null)
-                return;
 
             print("----- Algorithm STARTED -----");
-            antWork = StartCoroutine(Run());
-        }
 
-        // Algorithm's main method -> Threads: https://github.com/nunofachada/AIUnityExamples/blob/main/MovementOptimize/Assets/Scripts/Optimizer.cs
-        private IEnumerator Run()
-        {
+            // Create array of Ants
             InitAnts();
 
             // The current number of iterations
@@ -210,20 +191,37 @@ namespace LandscaperAnts
                 UpdatePheromones();
 
                 step++;
-                DisplayCurrentStep(step);
 
                 //UpdateTerrain();
 
-                yield return null;
+                // Stop the algorithm if the user decides to cancel it
+                if (EditorUtility.DisplayCancelableProgressBar(
+                    $"The ants are working!",
+                    $"On step {step} of {maxSteps}...",
+                    step / maxSteps))
+                {
+                    // Leave the loop and print a message
+                    print("----- Algorithm CANCELLED -----");
+                    break;
+                }
             }
+
+            // Clear progress bar
+            EditorUtility.ClearProgressBar();
+
+            // Print the time taken
+            print($"----- Algorithm took {sw.Elapsed.TotalMinutes:0.000} minutes. -----");
 
             // Update the terrain's heightmap
             UpdateTerrain();
+        }
 
-            antWork = null;
-
-            // Print a final message
-            print("----- Algorithm ENDED -----");
+        // Resets the terrain's components (heightmap and textures) back to default
+        [Button("Reset", EButtonEnableMode.Editor)]
+        private void ResetTerrain()
+        {
+            FlattenHeightmap();
+            terrain.materialTemplate.SetTexture("_PheromoneTex", null);
         }
 
         private Vector2Int GetRandomPos()
@@ -234,7 +232,7 @@ namespace LandscaperAnts
             return new(x, y);
         }
 
-        // Initiate Ant state (mainly their position)
+        // Initiate Ants' state (mainly their position)
         private void InitAnts()
         {
             // Create the necessary ants
@@ -262,7 +260,7 @@ namespace LandscaperAnts
                 }
             }
 
-            DisplayHomeSprite(colony);
+            //DisplayHomeSprite(colony);
 
             print($"Ants' colony is at {colony}");
         }
@@ -760,22 +758,6 @@ namespace LandscaperAnts
             terrain.materialTemplate.SetTexture("_PheromoneTex", phTex);
         }
 
-        // Stops the algorithm
-        public void StopAnts()
-        {
-            // Return if the coroutine isn't running
-            if (antWork is null)
-                return;
-
-            // Stops the algorithm's coroutine
-            StopCoroutine(antWork);
-
-            UpdateTerrain();
-
-            // Print a final message
-            print("----- Algorithm STOPPED -----");
-        }
-
         // Resets the heightmap
         public void FlattenHeightmap()
         {
@@ -805,16 +787,6 @@ namespace LandscaperAnts
             Vector3 spritePos = grid.TexelToVector(start);
 
             Instantiate(homeSprite, transform).transform.position = spritePos;
-        }
-
-        private void DisplayCurrentStep(int step) =>
-            stepsUI.text = $"{step}";
-
-        // Flatten the heightmap when quitting app
-        private void OnApplicationQuit()
-        {
-            FlattenHeightmap();
-            terrain.materialTemplate.SetTexture("_PheromoneTex", Texture2D.whiteTexture);
         }
     }
 }

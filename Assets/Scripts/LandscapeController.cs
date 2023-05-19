@@ -774,6 +774,9 @@ namespace LandscaperAnts
 
             // Apply the flattened heightmap on the terrain
             terrain.terrainData.SetHeights(0, 0, heights);
+
+            // Reset the terrain's position
+            terrain.transform.position = new(-5, 0, -5);
         }
 
         // Display sprites representing food at their 3D equivalent location

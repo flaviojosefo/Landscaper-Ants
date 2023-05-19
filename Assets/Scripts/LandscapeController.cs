@@ -164,11 +164,11 @@ namespace LandscaperAnts
 
             // Reset terrain's components
             ResetTerrain();
-            
+
             // Start a timer to measure total algorithm time
             Stopwatch sw = Stopwatch.StartNew();
 
-            // Create grid with height/pheromone matrices
+            // Create the necessary height/pheromone matrices
             grid.Generate();
 
             print("----- Generated NEW Grid -----");
@@ -210,7 +210,7 @@ namespace LandscaperAnts
             EditorUtility.ClearProgressBar();
 
             // Print the time taken
-            print($"----- Algorithm took {sw.Elapsed.TotalMinutes:0.000} minutes. -----");
+            DisplayCalculationTime(sw.Elapsed.TotalMinutes);
 
             // Update the terrain's heightmap
             UpdateTerrain();
@@ -787,6 +787,34 @@ namespace LandscaperAnts
             Vector3 spritePos = grid.TexelToVector(start);
 
             Instantiate(homeSprite, transform).transform.position = spritePos;
+        }
+
+        // Displays the algorithm's ellapsed minutes and seconds
+        private void DisplayCalculationTime(double ellapsedMinutes)
+        {
+            int minutes = (int)ellapsedMinutes;
+            double fractionalPart = ellapsedMinutes - minutes;
+
+            int seconds = (int)(fractionalPart * 60d);
+
+            string calcTime = "----- Algorithm finished after ";
+
+            if (minutes == 0)
+            {
+                calcTime += $"{seconds}";
+            }
+            else if (minutes == 1)
+            {
+                calcTime += $"{minutes} minute and {seconds}";
+            }
+            else
+            {
+                calcTime += $"{minutes} minutes and {seconds}";
+            }
+
+            calcTime += " seconds. -----";
+
+            print(calcTime);
         }
     }
 }

@@ -36,7 +36,19 @@ namespace LandscaperAnts
         private GameObject foodSprite;
 
         [SerializeField]
-        private Transform spritesParent;          
+        private Transform spritesParent;
+
+        public bool FlatTerrain 
+        { 
+            get => flatTerrain; 
+            set => flatTerrain = value; 
+        }
+
+        public int FoodAmount
+        {
+            get => foodAmount;
+            set => foodAmount = value;
+        }
 
         public int BaseDim => baseDim;
         public Vector3 TerrainSize => terrainSize;

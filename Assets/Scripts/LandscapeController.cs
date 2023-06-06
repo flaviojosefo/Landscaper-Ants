@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using NaughtyAttributes;
 using Generator;
+using NaughtyAttributes;
 using Random = UnityEngine.Random;
 
 namespace LandscaperAnts
@@ -13,6 +13,7 @@ namespace LandscaperAnts
     public sealed class LandscapeController : MonoBehaviour
     {
         // ----- Constants -----
+        private const string ExprmntrSettings = "Experimenter Settings";
         private const string GeneralParams = "General Parameters";
         private const string BehaviouralParams = "Behavioural Parameters";
         private const string HeightmapParams = "Heightmap Parameters";
@@ -44,7 +45,7 @@ namespace LandscaperAnts
 
         // The amount of Ants
         [BoxGroup(GeneralParams)]
-        [Range(1, 500)]
+        [Range(1, 5000)]
         [SerializeField]
         private int nAnts = 2;
 

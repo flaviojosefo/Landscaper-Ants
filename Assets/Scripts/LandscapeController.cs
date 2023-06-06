@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
+using System.Diagnostics;
 using System.Collections.Generic;
-using NaughtyAttributes;
 using UnityEngine;
+using UnityEditor;
+using NaughtyAttributes;
 using Generator;
 using Random = UnityEngine.Random;
-using System.Diagnostics;
-using UnityEditor;
 
 namespace LandscaperAnts
 {

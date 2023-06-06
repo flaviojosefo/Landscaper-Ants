@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using Generator;
 using NaughtyAttributes;
+using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
 namespace LandscaperAnts
@@ -18,6 +19,19 @@ namespace LandscaperAnts
         private const string BehaviouralParams = "Behavioural Parameters";
         private const string HeightmapParams = "Heightmap Parameters";
         private const string DisplayParams = "Display Parameters";
+
+        // ----- Experimenter reference -----
+
+        // Should the next run be an experiment run?
+        [BoxGroup(ExprmntrSettings)]
+        [SerializeField]
+        private bool runExperiments;
+
+        // A collection of predefined parameters
+        [BoxGroup(ExprmntrSettings)]
+        [SerializeField]
+        [ShowIf(nameof(runExperiments))]
+        private Experimenter experimenter;
 
         // ----- Private EDITOR config parameters -----
 
@@ -155,6 +169,102 @@ namespace LandscaperAnts
 
         // The Ants which will be pathtracing
         private Ant[] ants;
+
+        // ----- METHODS -----
+
+        [Button]
+        private void RunExperiments()
+        {
+            if (experimenter == null)
+            {
+                Debug.LogWarning("Experimenter was not assigned!");
+                return;
+            }
+
+            useSeed = true;
+
+            maxSteps = experimenter.MaxSteps;
+
+            grid.MaxFoodBites = experimenter.MaxFoodBites;
+
+            for (int i = 0; i < experimenter.Seeds.Length; i++)
+            {
+                rndSeed = experimenter.Seeds[i];
+
+                for (int j = 0; j < experimenter.ShuffleAnts.Length; j++)
+                {
+                    shuffleAnts = experimenter.ShuffleAnts[j];
+
+                    for (int k = 0; k < experimenter.IndividualStart.Length; k++)
+                    {
+                        individualStart = experimenter.IndividualStart[k];
+
+                        for (int l = 0; l < experimenter.NAnts.Length; l++)
+                        {
+                            nAnts = experimenter.NAnts[l];
+
+                            for (int m = 0; m < experimenter.AntsInPlace.Length; m++)
+                            {
+                                antsInPlace = experimenter.AntsInPlace[m];
+
+                                for (int n = 0; n < experimenter.AbsSlope.Length; n++)
+                                {
+                                    absSlope = experimenter.AbsSlope[n];
+
+                                    for (int o = 0; o < experimenter.Weights.Length; o++)
+                                    {
+                                        pheromoneWeight = experimenter.Weights[o].x;
+                                        slopeWeight = experimenter.Weights[o].y;
+                                        directionWeight = experimenter.Weights[o].z;
+                                        randomWeight = experimenter.Weights[o].w;
+
+                                        for (int p = 0; p < experimenter.PhEvap.Length; p++)
+                                        {
+                                            phEvap = experimenter.PhEvap[p];
+
+                                            for (int q = 0; q < experimenter.PhDiff.Length; q++)
+                                            {
+                                                phDiff = experimenter.PhDiff[q];
+
+                                                for (int r = 0; r < experimenter.HeightIncr.Length; r++)
+                                                {
+                                                    foodHeightIncr = experimenter.HeightIncr[r].x;
+                                                    noFoodHeightIncr = experimenter.HeightIncr[r].y;
+
+                                                    for (int s = 0; s < experimenter.FlatTerrain.Length; s++)
+                                                    {
+                                                        grid.FlatTerrain = experimenter.FlatTerrain[s];
+
+                                                        for (int t = 0; t < experimenter.FoodAmount.Length; t++)
+                                                        {
+                                                            grid.FoodAmount = experimenter.FoodAmount[t];
+
+                                                            // Get new experiment file/directory path
+
+                                                            // Check if file/directory already exists
+
+                                                            // If file/directory exists, skip this experiment
+
+                                                            // If not, assign parameters' values
+
+                                                            // Run the exeperiment
+
+                                                            // Take screenshots every X step count
+
+                                                            // Save screenshots on the experiment's path (inside a screenshots folder)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         [Button("Start", EButtonEnableMode.Editor)]
         private void StartAlgorithm()

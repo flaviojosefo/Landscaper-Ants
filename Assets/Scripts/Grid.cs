@@ -50,6 +50,12 @@ namespace LandscaperAnts
             set => foodAmount = value;
         }
 
+        public int MaxFoodBites
+        {
+            get => maxFoodBites;
+            set => maxFoodBites = value;
+        }
+
         public int BaseDim => baseDim;
         public Vector3 TerrainSize => terrainSize;
         public float MinHeight { get; set; }

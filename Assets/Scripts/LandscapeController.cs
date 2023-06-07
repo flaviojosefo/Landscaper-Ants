@@ -172,100 +172,6 @@ namespace LandscaperAnts
 
         // ----- METHODS -----
 
-        [Button]
-        private void RunExperiments()
-        {
-            if (experimenter == null)
-            {
-                Debug.LogWarning("Experimenter was not assigned!");
-                return;
-            }
-
-            useSeed = true;
-
-            maxSteps = experimenter.MaxSteps;
-
-            grid.MaxFoodBites = experimenter.MaxFoodBites;
-
-            for (int i = 0; i < experimenter.Seeds.Length; i++)
-            {
-                rndSeed = experimenter.Seeds[i];
-
-                for (int j = 0; j < experimenter.ShuffleAnts.Length; j++)
-                {
-                    shuffleAnts = experimenter.ShuffleAnts[j];
-
-                    for (int k = 0; k < experimenter.IndividualStart.Length; k++)
-                    {
-                        individualStart = experimenter.IndividualStart[k];
-
-                        for (int l = 0; l < experimenter.NAnts.Length; l++)
-                        {
-                            nAnts = experimenter.NAnts[l];
-
-                            for (int m = 0; m < experimenter.AntsInPlace.Length; m++)
-                            {
-                                antsInPlace = experimenter.AntsInPlace[m];
-
-                                for (int n = 0; n < experimenter.AbsSlope.Length; n++)
-                                {
-                                    absSlope = experimenter.AbsSlope[n];
-
-                                    for (int o = 0; o < experimenter.Weights.Length; o++)
-                                    {
-                                        pheromoneWeight = experimenter.Weights[o].x;
-                                        slopeWeight = experimenter.Weights[o].y;
-                                        directionWeight = experimenter.Weights[o].z;
-                                        randomWeight = experimenter.Weights[o].w;
-
-                                        for (int p = 0; p < experimenter.PhEvap.Length; p++)
-                                        {
-                                            phEvap = experimenter.PhEvap[p];
-
-                                            for (int q = 0; q < experimenter.PhDiff.Length; q++)
-                                            {
-                                                phDiff = experimenter.PhDiff[q];
-
-                                                for (int r = 0; r < experimenter.HeightIncr.Length; r++)
-                                                {
-                                                    foodHeightIncr = experimenter.HeightIncr[r].x;
-                                                    noFoodHeightIncr = experimenter.HeightIncr[r].y;
-
-                                                    for (int s = 0; s < experimenter.FlatTerrain.Length; s++)
-                                                    {
-                                                        grid.FlatTerrain = experimenter.FlatTerrain[s];
-
-                                                        for (int t = 0; t < experimenter.FoodAmount.Length; t++)
-                                                        {
-                                                            grid.FoodAmount = experimenter.FoodAmount[t];
-
-                                                            // Get new experiment file/directory path
-
-                                                            // Check if file/directory already exists
-
-                                                            // If file/directory exists, skip this experiment
-
-                                                            // If not, assign parameters' values
-
-                                                            // Run the exeperiment
-
-                                                            // Take screenshots every X step count
-
-                                                            // Save screenshots on the experiment's path (inside a screenshots folder)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         [Button("Start", EButtonEnableMode.Editor)]
         private void StartAlgorithm()
         {
@@ -373,7 +279,7 @@ namespace LandscaperAnts
 
             //DisplayHomeSprite(colony);
 
-            print($"Ants' colony is at {colony}");
+            //print($"Ants' colony is at {colony}");
         }
 
         // Update the Ants' status
@@ -929,6 +835,169 @@ namespace LandscaperAnts
             calcTime += " seconds. -----";
 
             print(calcTime);
+        }
+
+        [Button]
+        private void RunExperiments()
+        {
+            // Check if Experimenter's reference is set up
+            if (experimenter == null)
+            {
+                Debug.LogWarning("Experimenter was not assigned!");
+                return;
+            }
+
+            // Create the main experiments directory, if it doesn't exist
+            experimenter.CreateMainDirectory();
+
+            // Start a counter to determine the experiment's index
+            int expIndex = 0;
+
+            // Assign values to parameters that only need it once
+            useSeed = true;
+
+            maxSteps = experimenter.MaxSteps;
+
+            grid.MaxFoodBites = experimenter.MaxFoodBites;
+
+            // Nested for loops to combine different parameters and run the algorithm
+            for (int i = 0; i < experimenter.Seeds.Length; i++)
+            {
+                rndSeed = experimenter.Seeds[i];
+
+                for (int j = 0; j < experimenter.ShuffleAnts.Length; j++)
+                {
+                    shuffleAnts = experimenter.ShuffleAnts[j];
+
+                    for (int k = 0; k < experimenter.IndividualStart.Length; k++)
+                    {
+                        individualStart = experimenter.IndividualStart[k];
+
+                        for (int l = 0; l < experimenter.NAnts.Length; l++)
+                        {
+                            nAnts = experimenter.NAnts[l];
+
+                            for (int m = 0; m < experimenter.AntsInPlace.Length; m++)
+                            {
+                                antsInPlace = experimenter.AntsInPlace[m];
+
+                                for (int n = 0; n < experimenter.AbsSlope.Length; n++)
+                                {
+                                    absSlope = experimenter.AbsSlope[n];
+
+                                    for (int o = 0; o < experimenter.Weights.Length; o++)
+                                    {
+                                        pheromoneWeight = experimenter.Weights[o].x;
+                                        slopeWeight = experimenter.Weights[o].y;
+                                        directionWeight = experimenter.Weights[o].z;
+                                        randomWeight = experimenter.Weights[o].w;
+
+                                        for (int p = 0; p < experimenter.PhEvap.Length; p++)
+                                        {
+                                            phEvap = experimenter.PhEvap[p];
+
+                                            for (int q = 0; q < experimenter.PhDiff.Length; q++)
+                                            {
+                                                phDiff = experimenter.PhDiff[q];
+
+                                                for (int r = 0; r < experimenter.HeightIncr.Length; r++)
+                                                {
+                                                    foodHeightIncr = experimenter.HeightIncr[r].x;
+                                                    noFoodHeightIncr = experimenter.HeightIncr[r].y;
+
+                                                    for (int s = 0; s < experimenter.FlatTerrain.Length; s++)
+                                                    {
+                                                        grid.FlatTerrain = experimenter.FlatTerrain[s];
+
+                                                        for (int t = 0; t < experimenter.FoodAmount.Length; t++)
+                                                        {
+                                                            grid.FoodAmount = experimenter.FoodAmount[t];
+
+                                                            // Create this experiment's necessary directories
+                                                            experimenter.CreateExperimentDirectory(expIndex);
+
+                                                            // Skip this experiment if it was already performed
+                                                            if (experimenter.ParamsFileExits(expIndex))
+                                                                continue;
+
+                                                            // Assign a seed, if requested
+                                                            Random.InitState(rndSeed);
+
+                                                            // Reset terrain's components
+                                                            ResetTerrain();
+
+                                                            // Create the necessary height/pheromone matrices
+                                                            grid.Generate();
+
+                                                            // Create array of Ants
+                                                            InitAnts();
+
+                                                            // The current number of iterations
+                                                            int step = 0;
+
+                                                            // Main algorithm loop
+                                                            while (step < maxSteps)
+                                                            {
+                                                                UpdateAnts();
+                                                                UpdatePheromones();
+
+                                                                step++;
+
+                                                                //UpdateTerrain(); --> take screenshot every X step
+
+                                                                // Stop the algorithm if the user decides to cancel it
+                                                                if (EditorUtility.DisplayCancelableProgressBar(
+                                                                    $"Running experiment {expIndex}",
+                                                                    $"On step {step} of {maxSteps}...",
+                                                                    step / maxSteps))
+                                                                {
+                                                                    // Leave the loop and print a message
+                                                                    print("----- Algorithm CANCELLED -----");
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            // Clear progress bar
+                                                            EditorUtility.ClearProgressBar();
+
+                                                            // Create the content to write on the parameters file
+                                                            string content =
+                                                                $"RndSeed: {rndSeed}\n" +
+                                                                $"ShuffleAnts: {shuffleAnts}\n" +
+                                                                $"IndividualStart: {individualStart}\n" +
+                                                                $"NAnts: {nAnts}\n" +
+                                                                $"MaxSteps: {maxSteps}\n" +
+                                                                $"AntsInPlace: {antsInPlace}\n" +
+                                                                $"AbsSlope: {absSlope}\n" +
+                                                                $"PheromoneWeight: {pheromoneWeight}\n" +
+                                                                $"SlopeWeight: {slopeWeight}\n" +
+                                                                $"DirectionWeight: {directionWeight}\n" +
+                                                                $"RandomWeight: {randomWeight}\n" +
+                                                                $"PhEvap: {phEvap}\n" +
+                                                                $"PhDiff: {phDiff}\n" +
+                                                                $"FoodHeightIncr: {foodHeightIncr}\n" +
+                                                                $"NoFoodHeightIncr: {noFoodHeightIncr}\n" +
+                                                                $"FlatTerrain: {grid.FlatTerrain}\n" +
+                                                                $"FoodAmount: {grid.FoodAmount}\n" +
+                                                                $"MaxFoodBites: {grid.MaxFoodBites}\n";
+
+                                                            // Create the parameters file and write to it
+                                                            experimenter.CreateParamsFile(expIndex, content);
+
+                                                            // Increment the experiment counter
+                                                            expIndex++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

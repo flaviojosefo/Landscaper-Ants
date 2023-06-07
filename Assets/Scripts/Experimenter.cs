@@ -12,9 +12,11 @@ public sealed class Experimenter : MonoBehaviour
     // ----- Constants -----
     private const string ExperimentParams = "Experiment Parameters";
 
-    private const string FileNamePrefix = "Experiment";
     private const string MainFolderName = "Landscaper Ants";
     private const string PrintsFolderName = "Screenshots";
+
+    private const string FolderNamePrefix = "Experiment";
+    private const string FileNamePrefix = "Params";
 
     // ----- Private EDITOR config parameters -----
 
@@ -137,21 +139,6 @@ public sealed class Experimenter : MonoBehaviour
         }
     }
 
-    private void CreateFile(string path, string fileName)
-    {
-        string filePath = Path.Combine(path, $"{fileName}.txt");
-
-        if (!File.Exists(filePath))
-        {
-            using (StreamWriter sw = File.CreateText(filePath))
-            {
-                sw.Write("Hello!");
-            }
-
-            File.SetAttributes(filePath, FileAttributes.ReadOnly);
-        }
-    }
-
     [Button]
     private void TakeScreenshot()
     {
@@ -176,28 +163,41 @@ public sealed class Experimenter : MonoBehaviour
         AssetDatabase.Refresh();
     }
 
-    [Button]
-    private void CreateExperiments()
+    public void CreateMainDirectory()
     {
         string mainPath = Path.Combine(docsPath, MainFolderName);
+        CreateDirectory(mainPath);
+    }
 
-        CreateDirectory(MainFolderName);
+    public void CreateExperimentDirectory(int index)
+    {
+        // Create an experiment's folder
+        string experimentPath = Path.Combine(docsPath, MainFolderName, $"{FolderNamePrefix}_{index}");
+        CreateDirectory(experimentPath);
 
-        for (int i = 0; i < 10; i++)
+        // Create the experiment's screenshots' folder, inside the previously created
+        string screenshotsPath = Path.Combine(experimentPath, PrintsFolderName);
+        CreateDirectory(screenshotsPath);
+    }
+
+    public void CreateParamsFile(int index, string content)
+    {
+        string filePath = Path.Combine(docsPath, MainFolderName, $"{FolderNamePrefix}_{index}", $"{FileNamePrefix}_{index}.txt");
+
+        // Create a txt file and write the experiment's parameters in it
+        using (StreamWriter sw = File.CreateText(filePath))
         {
-            string experimentPath = Path.Combine(mainPath, $"{FileNamePrefix}_{i}");
-
-            CreateDirectory(experimentPath);
-
-            string screenshotsPath = Path.Combine(experimentPath, PrintsFolderName);
-
-            CreateDirectory(screenshotsPath);
-
-            // Create file AFTER FULL EXPERIMENT
-            // Check if this file exists in the BEGINNING OF THE EXPERIMENT
-            // to check if a full run was already done
-            // How to handle already created screenshots IF the experimemt was stopped???
-            CreateFile(experimentPath, $"Params_{i}");
+            sw.Write(content);
         }
+
+        // Set the file as read only after writing
+        File.SetAttributes(filePath, FileAttributes.ReadOnly);
+    }
+
+    public bool ParamsFileExits(int index)
+    {
+        // Checks if the txt file containing the experiment's parameters exists
+        string filePath = Path.Combine(docsPath, MainFolderName, $"{FolderNamePrefix}_{index}", $"{FileNamePrefix}_{index}.txt");
+        return File.Exists(filePath);
     }
 }

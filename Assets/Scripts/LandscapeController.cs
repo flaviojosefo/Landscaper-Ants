@@ -838,6 +838,7 @@ namespace LandscaperAnts
         }
 
         [Button]
+        [ShowIf(nameof(runExperiments))]
         private void RunExperiments()
         {
             // Check if Experimenter's reference is set up
@@ -916,73 +917,73 @@ namespace LandscaperAnts
                                                             // Create this experiment's necessary directories
                                                             experimenter.CreateExperimentDirectory(expIndex);
 
-                                                            // Skip this experiment if it was already performed
-                                                            if (experimenter.ParamsFileExits(expIndex))
-                                                                continue;
-
-                                                            // Assign a seed, if requested
-                                                            Random.InitState(rndSeed);
-
-                                                            // Reset terrain's components
-                                                            ResetTerrain();
-
-                                                            // Create the necessary height/pheromone matrices
-                                                            grid.Generate();
-
-                                                            // Create array of Ants
-                                                            InitAnts();
-
-                                                            // The current number of iterations
-                                                            int step = 0;
-
-                                                            // Main algorithm loop
-                                                            while (step < maxSteps)
+                                                            // Only execute an experiment if it wasn't already performed
+                                                            if (!experimenter.ParamsFileExits(expIndex))
                                                             {
-                                                                UpdateAnts();
-                                                                UpdatePheromones();
+                                                                // Assign a seed, if requested
+                                                                Random.InitState(rndSeed);
 
-                                                                step++;
+                                                                // Reset terrain's components
+                                                                ResetTerrain();
 
-                                                                //UpdateTerrain(); --> take screenshot every X step
+                                                                // Create the necessary height/pheromone matrices
+                                                                grid.Generate();
 
-                                                                // Stop the algorithm if the user decides to cancel it
-                                                                if (EditorUtility.DisplayCancelableProgressBar(
-                                                                    $"Running experiment {expIndex}",
-                                                                    $"On step {step} of {maxSteps}...",
-                                                                    step / maxSteps))
+                                                                // Create array of Ants
+                                                                InitAnts();
+
+                                                                // The current number of iterations
+                                                                int step = 0;
+
+                                                                // Main algorithm loop
+                                                                while (step < maxSteps)
                                                                 {
-                                                                    // Leave the loop and print a message
-                                                                    print("----- Algorithm CANCELLED -----");
-                                                                    break;
+                                                                    UpdateAnts();
+                                                                    UpdatePheromones();
+
+                                                                    step++;
+
+                                                                    //UpdateTerrain(); --> take screenshot every X step
+
+                                                                    // Stop the algorithm if the user decides to cancel it
+                                                                    if (EditorUtility.DisplayCancelableProgressBar(
+                                                                        $"Running experiment {expIndex}",
+                                                                        $"On step {step} of {maxSteps}...",
+                                                                        step / maxSteps))
+                                                                    {
+                                                                        // Leave the loop and print a message
+                                                                        print("----- Algorithm CANCELLED -----");
+                                                                        break;
+                                                                    }
                                                                 }
+
+                                                                // Clear progress bar
+                                                                EditorUtility.ClearProgressBar();
+
+                                                                // Create the content to write on the parameters file
+                                                                string content =
+                                                                    $"RndSeed: {rndSeed}\n" +
+                                                                    $"ShuffleAnts: {shuffleAnts}\n" +
+                                                                    $"IndividualStart: {individualStart}\n" +
+                                                                    $"NAnts: {nAnts}\n" +
+                                                                    $"MaxSteps: {maxSteps}\n" +
+                                                                    $"AntsInPlace: {antsInPlace}\n" +
+                                                                    $"AbsSlope: {absSlope}\n" +
+                                                                    $"PheromoneWeight: {pheromoneWeight}\n" +
+                                                                    $"SlopeWeight: {slopeWeight}\n" +
+                                                                    $"DirectionWeight: {directionWeight}\n" +
+                                                                    $"RandomWeight: {randomWeight}\n" +
+                                                                    $"PhEvap: {phEvap}\n" +
+                                                                    $"PhDiff: {phDiff}\n" +
+                                                                    $"FoodHeightIncr: {foodHeightIncr}\n" +
+                                                                    $"NoFoodHeightIncr: {noFoodHeightIncr}\n" +
+                                                                    $"FlatTerrain: {grid.FlatTerrain}\n" +
+                                                                    $"FoodAmount: {grid.FoodAmount}\n" +
+                                                                    $"MaxFoodBites: {grid.MaxFoodBites}\n";
+
+                                                                // Create the parameters file and write to it
+                                                                experimenter.CreateParamsFile(expIndex, content);
                                                             }
-
-                                                            // Clear progress bar
-                                                            EditorUtility.ClearProgressBar();
-
-                                                            // Create the content to write on the parameters file
-                                                            string content =
-                                                                $"RndSeed: {rndSeed}\n" +
-                                                                $"ShuffleAnts: {shuffleAnts}\n" +
-                                                                $"IndividualStart: {individualStart}\n" +
-                                                                $"NAnts: {nAnts}\n" +
-                                                                $"MaxSteps: {maxSteps}\n" +
-                                                                $"AntsInPlace: {antsInPlace}\n" +
-                                                                $"AbsSlope: {absSlope}\n" +
-                                                                $"PheromoneWeight: {pheromoneWeight}\n" +
-                                                                $"SlopeWeight: {slopeWeight}\n" +
-                                                                $"DirectionWeight: {directionWeight}\n" +
-                                                                $"RandomWeight: {randomWeight}\n" +
-                                                                $"PhEvap: {phEvap}\n" +
-                                                                $"PhDiff: {phDiff}\n" +
-                                                                $"FoodHeightIncr: {foodHeightIncr}\n" +
-                                                                $"NoFoodHeightIncr: {noFoodHeightIncr}\n" +
-                                                                $"FlatTerrain: {grid.FlatTerrain}\n" +
-                                                                $"FoodAmount: {grid.FoodAmount}\n" +
-                                                                $"MaxFoodBites: {grid.MaxFoodBites}\n";
-
-                                                            // Create the parameters file and write to it
-                                                            experimenter.CreateParamsFile(expIndex, content);
 
                                                             // Increment the experiment counter
                                                             expIndex++;

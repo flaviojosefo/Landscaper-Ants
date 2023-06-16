@@ -170,9 +170,12 @@ namespace LandscaperAnts
         // The Ants which will be pathtracing
         private Ant[] ants;
 
+        private readonly int[] neighboursX = { -1, -1, -1,  0, 0,  1, 1, 1 };
+        private readonly int[] neighboursY = { -1,  0,  1, -1, 1, -1, 0, 1 };
+
         // ----- METHODS -----
 
-        [Button("Start", EButtonEnableMode.Editor)]
+        [Button("Start", EButtonEnableMode.Editor)] // -------------------------------------------------------------------> Playmode?
         private void StartAlgorithm()
         {
             // Assign a seed, if requested
@@ -602,9 +605,9 @@ namespace LandscaperAnts
             float[,] newPheromones = new float[grid.BaseDim, grid.BaseDim];
 
             // Evaporation & Diffusion
-            for (int y = 0; y < grid.BaseDim; y++)
+            for (int y = 1; y < grid.BaseDim - 1; y++)
             {
-                for (int x = 0; x < grid.BaseDim; x++)
+                for (int x = 1; x < grid.BaseDim - 1; x++)
                 {
                     // Get the current pheromone concentration
                     float currentPhCon = grid.Pheromones[y, x];
@@ -612,20 +615,10 @@ namespace LandscaperAnts
                     // The total concentration of pheromones on all neighbours
                     float neighbrsTotalPhCon = 0f;
 
-                    // Get a cell's neighbours
-                    Vector2Int[] neighbours = GetNeighbours(new(x, y));
-
                     // Get the pheromone concentration of each found neighbour
-                    for (int k = 0; k < neighbours.Length; k++)
+                    for (int k = 0; k < neighboursX.Length; k++)
                     {
-                        // Get a reference to current neighbour
-                        Vector2Int n = neighbours[k];
-
-                        // Increase total concentration only if coordinates are inside of the available 2D space
-                        if (n.x >= 0 && n.y >= 0 && n.x < grid.BaseDim && n.y < grid.BaseDim)
-                        {
-                            neighbrsTotalPhCon += grid.Pheromones[n.y, n.x];
-                        }
+                        neighbrsTotalPhCon += grid.Pheromones[y + neighboursY[k], x + neighboursX[k]];
                     }
 
                     // Only calculate evaporation and diffusion if there's any
@@ -634,30 +627,13 @@ namespace LandscaperAnts
                     {
                         // Update pheromone value in specific cell based on evaporation and diffusion
                         newPheromones[y, x] =
-                            (1f - phEvap) * (currentPhCon + (phDiff * ((neighbrsTotalPhCon / neighbours.Length) - currentPhCon)));
+                            (1f - phEvap) * (currentPhCon + (phDiff * ((neighbrsTotalPhCon / neighboursX.Length) - currentPhCon)));
                     }
                 }
             }
 
             // Apply the new pheromone values to the general pheromone matrix
             grid.Pheromones = newPheromones;
-        }
-
-        // Gets the neighbours surrounding a cell, including those that don't exist in the grid
-        private Vector2Int[] GetNeighbours(Vector2Int cell)
-        {
-            // The list of neighbours to find
-            return new Vector2Int[8]
-            {
-                new(cell.x - 1, cell.y - 1),
-                new(cell.x - 1, cell.y),
-                new(cell.x - 1, cell.y + 1),
-                new(cell.x, cell.y - 1),
-                new(cell.x, cell.y + 1),
-                new(cell.x + 1, cell.y - 1),
-                new(cell.x + 1, cell.y),
-                new(cell.x + 1, cell.y + 1)
-            };
         }
 
         // Checks if the Ant is next to a food source

@@ -4,7 +4,6 @@ using System.Text;
 using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
 using NaughtyAttributes;
 
 public sealed class Experimenter : MonoBehaviour
@@ -17,6 +16,7 @@ public sealed class Experimenter : MonoBehaviour
 
     private const string FolderNamePrefix = "Experiment";
     private const string FileNamePrefix = "Params";
+    private const string PrintsPrefix = "Screenshot";
 
     // ----- Private EDITOR config parameters -----
 
@@ -118,6 +118,14 @@ public sealed class Experimenter : MonoBehaviour
 
     // ----- METHODS -----
 
+    private void CreateDirectory(string path)
+    {
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+    }
+
     public int SecureHash(int input)
     {
         using SHA256 sha256 = SHA256.Create();
@@ -131,36 +139,18 @@ public sealed class Experimenter : MonoBehaviour
         return hash;
     }
 
-    private void CreateDirectory(string path)
+    public void PrintScreen(int index, int imgIndex, int step)
     {
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
-    }
+        Texture2D print = ScreenCapture.CaptureScreenshotAsTexture();
 
-    [Button]
-    private void TakeScreenshot()
-    {
-        SceneView sceneWindow = EditorWindow.GetWindow<SceneView>();
+        byte[] bytes = print.EncodeToPNG();
 
-        Rect winRect = sceneWindow.position;
+        Destroy(print);
 
-        Color[] colors = InternalEditorUtility.ReadScreenPixel(winRect.position, (int)winRect.width, (int)winRect.height);
+        string filePath = Path.Combine(docsPath, MainFolderName, 
+            $"{FolderNamePrefix}_{index}", PrintsFolderName, $"{PrintsPrefix}_{imgIndex}-Step_{step}.png");
 
-        Texture2D result = new((int)winRect.width, (int)winRect.height);
-        result.SetPixels(colors);
-
-        byte[] bytes = result.EncodeToPNG();
-
-        DestroyImmediate(result);
-
-        DateTime dt = DateTime.Now;
-        string timeString = string.Format($"{dt.Year}-{dt.Month:00}-{dt.Day:00}_{dt.Hour:00}-{dt.Minute:00}-{dt.Second:00}");
-
-        File.WriteAllBytes(Path.Combine(Application.dataPath, "Screenshots", $"Screenshot_{timeString}.png"), bytes);
-
-        AssetDatabase.Refresh();
+        File.WriteAllBytes(filePath, bytes);
     }
 
     public void CreateMainDirectory()

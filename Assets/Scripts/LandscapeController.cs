@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Diagnostics;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -160,6 +161,11 @@ namespace LandscaperAnts
         [SerializeField]
         private GameObject homeSprite;
 
+        // The scene's main camera
+        [BoxGroup(DisplayParams)]
+        [SerializeField]
+        private GameObject sceneCam;
+
         // Color gradient for representation of pheromone amount on the terrain
         [BoxGroup(DisplayParams)]
         [SerializeField]
@@ -175,7 +181,7 @@ namespace LandscaperAnts
 
         // ----- METHODS -----
 
-        [Button("Start", EButtonEnableMode.Editor)] // -------------------------------------------------------------------> Playmode?
+        [Button("Start", EButtonEnableMode.Editor)]
         private void StartAlgorithm()
         {
             // Assign a seed, if requested
@@ -813,16 +819,24 @@ namespace LandscaperAnts
             print(calcTime);
         }
 
-        [Button]
+        [Button(enabledMode: EButtonEnableMode.Playmode)]
         [ShowIf(nameof(runExperiments))]
-        private void RunExperiments()
+        private IEnumerator RunExperiments()
         {
-            // Check if Experimenter's reference is set up
+            // Check if Experimenter and Camera both have assigned references
             if (experimenter == null)
             {
                 Debug.LogWarning("Experimenter was not assigned!");
-                return;
+                yield break;
             }
+            else if (sceneCam == null)
+            {
+                Debug.LogWarning("Scene Camera was not assigned!");
+                yield break;
+            }
+
+            // Disable rendering
+            sceneCam.SetActive(false);
 
             // Create the main experiments directory, if it doesn't exist
             experimenter.CreateMainDirectory();
@@ -911,6 +925,9 @@ namespace LandscaperAnts
                                                                 // The current number of iterations
                                                                 int step = 0;
 
+                                                                // The index of the image to be generated
+                                                                int imgIndex = 0;
+
                                                                 // Main algorithm loop
                                                                 while (step < maxSteps)
                                                                 {
@@ -919,7 +936,25 @@ namespace LandscaperAnts
 
                                                                     step++;
 
-                                                                    //UpdateTerrain(); --> take screenshot every X step
+                                                                    if (step % experimenter.PrintStep == 0)
+                                                                    {
+                                                                        // Re-enable rendering
+                                                                        sceneCam.SetActive(true);
+
+                                                                        // Update the terrain
+                                                                        UpdateTerrain();
+
+                                                                        // Wait until end of current frame
+                                                                        yield return new WaitForEndOfFrame();
+
+                                                                        // Take a screenshot
+                                                                        experimenter.PrintScreen(expIndex, imgIndex, step);
+
+                                                                        // Disable rendering
+                                                                        sceneCam.SetActive(false);
+
+                                                                        imgIndex++;
+                                                                    }
 
                                                                     // Stop the algorithm if the user decides to cancel it
                                                                     if (EditorUtility.DisplayCancelableProgressBar(
@@ -931,6 +966,8 @@ namespace LandscaperAnts
                                                                         print("----- Algorithm CANCELLED -----");
                                                                         break;
                                                                     }
+
+                                                                    yield return null;
                                                                 }
 
                                                                 // Clear progress bar
@@ -959,6 +996,8 @@ namespace LandscaperAnts
 
                                                                 // Create the parameters file and write to it
                                                                 experimenter.CreateParamsFile(expIndex, content);
+
+                                                                print($"Experiment {expIndex} completed!");
                                                             }
 
                                                             // Increment the experiment counter
@@ -975,6 +1014,17 @@ namespace LandscaperAnts
                     }
                 }
             }
+
+            print("----- ALL EXPERIMENTS FINISHED! -----");
+
+            // Stop running the Application
+            EditorApplication.ExitPlaymode();
+        }
+
+        // Reset the terrain on quitting the application
+        private void OnApplicationQuit()
+        {
+            ResetTerrain();
         }
     }
 }

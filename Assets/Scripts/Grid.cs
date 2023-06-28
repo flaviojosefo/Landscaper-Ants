@@ -57,6 +57,7 @@ namespace LandscaperAnts
         }
 
         public int BaseDim => baseDim;
+        public int BaseDimMinusOne => baseDim - 1; // Alternative property to be used when wanting to ignore the outer edges of the heightmap
         public Vector3 TerrainSize => terrainSize;
         public float MinHeight { get; set; }
 
@@ -81,8 +82,8 @@ namespace LandscaperAnts
 
             for (int i = 0; i < foodAmount; i++)
             {
-                int x = Random.Range(0, baseDim);
-                int y = Random.Range(0, baseDim);
+                int x = Random.Range(0, BaseDimMinusOne);
+                int y = Random.Range(0, BaseDimMinusOne);
 
                 Vector2Int foodCell = new(x, y);
 

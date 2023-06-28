@@ -252,8 +252,8 @@ namespace LandscaperAnts
 
         private Vector2Int GetRandomPos()
         {
-            int x = Random.Range(0, grid.BaseDim);
-            int y = Random.Range(0, grid.BaseDim);
+            int x = Random.Range(0, grid.BaseDimMinusOne);
+            int y = Random.Range(0, grid.BaseDimMinusOne);
 
             return new(x, y);
         }
@@ -393,10 +393,10 @@ namespace LandscaperAnts
 
                     float percentage = 0.2f - (0.2f * i * 0.5f);
 
-                    if (f1.x >= 0 && f1.y >= 0 && f1.x < grid.BaseDim && f1.y < grid.BaseDim)
+                    if (f1.x >= 1 && f1.y >= 1 && f1.x < grid.BaseDimMinusOne && f1.y < grid.BaseDimMinusOne)
                         grid.Heights[f1.y, f1.x] += digAmount * percentage;
 
-                    if (f2.x >= 0 && f2.y >= 0 && f2.x < grid.BaseDim && f2.y < grid.BaseDim)
+                    if (f2.x >= 1 && f2.y >= 1 && f2.x < grid.BaseDimMinusOne && f2.y < grid.BaseDimMinusOne)
                         grid.Heights[f2.y, f2.x] += digAmount * percentage;
                 }
 
@@ -413,10 +413,10 @@ namespace LandscaperAnts
 
                     float percentage = 0.2f - (0.2f * i * 0.5f);
 
-                    if (f1.x >= 0 && f1.y >= 0 && f1.x < grid.BaseDim && f1.y < grid.BaseDim)
+                    if (f1.x >= 1 && f1.y >= 1 && f1.x < grid.BaseDimMinusOne && f1.y < grid.BaseDimMinusOne)
                         grid.Heights[f1.y, f1.x] += digAmount * percentage;
 
-                    if (f2.x >= 0 && f2.y >= 0 && f2.x < grid.BaseDim && f2.y < grid.BaseDim)
+                    if (f2.x >= 1 && f2.y >= 1 && f2.x < grid.BaseDimMinusOne && f2.y < grid.BaseDimMinusOne)
                         grid.Heights[f2.y, f2.x] += digAmount * percentage;
                 }
             }
@@ -611,9 +611,9 @@ namespace LandscaperAnts
             float[,] newPheromones = new float[grid.BaseDim, grid.BaseDim];
 
             // Evaporation & Diffusion
-            for (int y = 1; y < grid.BaseDim - 1; y++)
+            for (int y = 1; y < grid.BaseDimMinusOne; y++)
             {
-                for (int x = 1; x < grid.BaseDim - 1; x++)
+                for (int x = 1; x < grid.BaseDimMinusOne; x++)
                 {
                     // Get the current pheromone concentration
                     float currentPhCon = grid.Pheromones[y, x];
@@ -691,7 +691,7 @@ namespace LandscaperAnts
                         ny = p.y + dy;
 
                     // Skip neighbour if coordinates are outside of the available 2D space
-                    if (nx < 0 || ny < 0 || nx >= grid.BaseDim || ny >= grid.BaseDim)
+                    if (nx < 1 || ny < 1 || nx >= grid.BaseDimMinusOne || ny >= grid.BaseDimMinusOne)
                         continue;
 
                     // If previous conditions fail, add the point to the list

@@ -67,7 +67,7 @@ namespace LandscaperAnts
         // Setup all grid variables
         public void Generate()
         {
-            CreateNodes();
+            SpawnFood();
 
             CreateMatrices();
 
@@ -75,7 +75,7 @@ namespace LandscaperAnts
         }
 
         // Create a collection of points on random positions
-        private void CreateNodes()
+        private void SpawnFood()
         {
             Foods = new Food[foodAmount];
 

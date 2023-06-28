@@ -74,7 +74,7 @@ namespace LandscaperAnts
             //DisplayFoodSprites();
         }
 
-        // Create a collection of points on random positions
+        // Create a collection of points representing food on random positions
         private void SpawnFood()
         {
             Foods = new Food[foodAmount];

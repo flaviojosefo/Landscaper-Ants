@@ -962,9 +962,15 @@ namespace LandscaperAnts
                                                                         $"On step {step} of {maxSteps}...",
                                                                         step / maxSteps))
                                                                     {
-                                                                        // Leave the loop and print a message
-                                                                        print("----- Algorithm CANCELLED -----");
-                                                                        break;
+                                                                        // Clear progress bar
+                                                                        EditorUtility.ClearProgressBar();
+
+                                                                        print("----- ALL EXPERIMENTS CANCELED! -----");
+
+                                                                        // Stop running the Application
+                                                                        EditorApplication.ExitPlaymode();
+
+                                                                        yield break;
                                                                     }
 
                                                                     yield return null;

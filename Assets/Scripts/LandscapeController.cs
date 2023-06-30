@@ -925,9 +925,6 @@ namespace LandscaperAnts
                                                                 // The current number of iterations
                                                                 int step = 0;
 
-                                                                // The index of the image to be generated
-                                                                int imgIndex = 0;
-
                                                                 // Main algorithm loop
                                                                 while (step < maxSteps)
                                                                 {
@@ -940,20 +937,28 @@ namespace LandscaperAnts
                                                                     {
                                                                         // Re-enable rendering
                                                                         sceneCam.SetActive(true);
-
+                                                                        
                                                                         // Update the terrain
                                                                         UpdateTerrain();
 
-                                                                        // Wait until end of current frame
-                                                                        yield return new WaitForEndOfFrame();
+                                                                        // Cycle through all desired camera positions/rotations
+                                                                        for (int u = 0; u < experimenter.CameraPrintPositions.Length; u++)
+                                                                        {
+                                                                            // Assign a position
+                                                                            sceneCam.transform.position = experimenter.CameraPrintPositions[u];
 
-                                                                        // Take a screenshot
-                                                                        experimenter.PrintScreen(expIndex, imgIndex, step);
+                                                                            // Assign a rotation
+                                                                            sceneCam.transform.eulerAngles = experimenter.CameraPrintEulerAngles[u];
+
+                                                                            // Wait until end of current frame
+                                                                            yield return new WaitForEndOfFrame();
+
+                                                                            // Take a screenshot
+                                                                            experimenter.PrintScreen(expIndex, step, u);
+                                                                        }
 
                                                                         // Disable rendering
                                                                         sceneCam.SetActive(false);
-
-                                                                        imgIndex++;
                                                                     }
 
                                                                     // Stop the algorithm if the user decides to cancel it
@@ -1008,6 +1013,9 @@ namespace LandscaperAnts
 
                                                             // Increment the experiment counter
                                                             expIndex++;
+
+                                                            if (expIndex == 9)
+                                                                yield break;
                                                         }
                                                     }
                                                 }

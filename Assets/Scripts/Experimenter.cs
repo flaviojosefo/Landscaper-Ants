@@ -1,22 +1,19 @@
 using System;
 using System.IO;
-using System.Text;
-using System.Security.Cryptography;
 using UnityEngine;
-using UnityEditor;
 using NaughtyAttributes;
 
 public sealed class Experimenter : MonoBehaviour
 {
     // ----- Constants -----
     private const string ExperimentParams = "Experiment Parameters";
+    private const string CameraParams = "Camera Screenshot Parameters";
 
     private const string MainFolderName = "Landscaper Ants";
     private const string PrintsFolderName = "Screenshots";
 
     private const string FolderNamePrefix = "Experiment";
     private const string FileNamePrefix = "Params";
-    private const string PrintsPrefix = "Screenshot";
 
     // ----- Private EDITOR config parameters -----
 
@@ -39,10 +36,6 @@ public sealed class Experimenter : MonoBehaviour
     [BoxGroup(ExperimentParams)]
     [SerializeField]
     private int maxSteps;
-
-    [BoxGroup(ExperimentParams)]
-    [SerializeField]
-    private int printStep;
 
     [BoxGroup(ExperimentParams)]
     [SerializeField]
@@ -80,9 +73,23 @@ public sealed class Experimenter : MonoBehaviour
     [SerializeField]
     private int maxFoodBites;
 
+    [BoxGroup(CameraParams)]
+    [SerializeField]
+    private int printStep;
+
+    [BoxGroup(CameraParams)]
+    [SerializeField]
+    private Vector3[] cameraPrintPositions;
+
+    [BoxGroup(CameraParams)]
+    [SerializeField]
+    private Vector3[] cameraPrintEulerAngles;
+
     // ----- Private instance variables -----
 
     private readonly string docsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+    private readonly string[] printFolderTypes = { "1.Top", "2.Side", "3.Diagonal" };
 
     // ----- Public parameter properties -----
 
@@ -95,8 +102,6 @@ public sealed class Experimenter : MonoBehaviour
     public int[] NAnts => nAnts;
 
     public int MaxSteps => maxSteps;
-
-    public int PrintStep => printStep;
 
     public bool[] AntsInPlace => antsInPlace;
 
@@ -116,6 +121,12 @@ public sealed class Experimenter : MonoBehaviour
 
     public int MaxFoodBites => maxFoodBites;
 
+    public int PrintStep => printStep;
+
+    public Vector3[] CameraPrintPositions => cameraPrintPositions;
+
+    public Vector3[] CameraPrintEulerAngles => cameraPrintEulerAngles;
+
     // ----- METHODS -----
 
     private void CreateDirectory(string path)
@@ -126,20 +137,7 @@ public sealed class Experimenter : MonoBehaviour
         }
     }
 
-    public int SecureHash(int input)
-    {
-        using SHA256 sha256 = SHA256.Create();
-
-        byte[] inputBytes = Encoding.UTF8.GetBytes(input.ToString());
-        byte[] hashBytes = sha256.ComputeHash(inputBytes);
-
-        // Convert the hash bytes to an integer
-        int hash = BitConverter.ToInt32(hashBytes, 0);
-
-        return hash;
-    }
-
-    public void PrintScreen(int index, int imgIndex, int step)
+    public void PrintScreen(int index, int step, int type)
     {
         Texture2D print = ScreenCapture.CaptureScreenshotAsTexture();
 
@@ -148,7 +146,7 @@ public sealed class Experimenter : MonoBehaviour
         Destroy(print);
 
         string filePath = Path.Combine(docsPath, MainFolderName, 
-            $"{FolderNamePrefix}_{index}", PrintsFolderName, $"{PrintsPrefix}_{imgIndex}-Step_{step}.png");
+            $"{FolderNamePrefix}_{index}", PrintsFolderName, printFolderTypes[type], $"Step_{step}.png");
 
         File.WriteAllBytes(filePath, bytes);
     }
@@ -165,9 +163,19 @@ public sealed class Experimenter : MonoBehaviour
         string experimentPath = Path.Combine(docsPath, MainFolderName, $"{FolderNamePrefix}_{index}");
         CreateDirectory(experimentPath);
 
-        // Create the experiment's screenshots' folder, inside the previously created
+        // Create the experiment's screenshots' folder, inside the previously created one
         string screenshotsPath = Path.Combine(experimentPath, PrintsFolderName);
         CreateDirectory(screenshotsPath);
+
+        // Create 3 folders for each screenshot type
+        string type1ScreenShotsPath = Path.Combine(screenshotsPath, printFolderTypes[0]);
+        CreateDirectory(type1ScreenShotsPath);
+
+        string type2ScreenShotsPath = Path.Combine(screenshotsPath, printFolderTypes[1]);
+        CreateDirectory(type2ScreenShotsPath);
+
+        string type3ScreenShotsPath = Path.Combine(screenshotsPath, printFolderTypes[2]);
+        CreateDirectory(type3ScreenShotsPath);
     }
 
     public void CreateParamsFile(int index, string content)

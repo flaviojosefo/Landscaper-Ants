@@ -1013,9 +1013,6 @@ namespace LandscaperAnts
 
                                                             // Increment the experiment counter
                                                             expIndex++;
-
-                                                            if (expIndex == 9)
-                                                                yield break;
                                                         }
                                                     }
                                                 }

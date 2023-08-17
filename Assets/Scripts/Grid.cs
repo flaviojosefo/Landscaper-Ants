@@ -94,6 +94,8 @@ namespace LandscaperAnts
         // Create height and pheromone matrices
         private void CreateMatrices()
         {
+            MinHeight = 0f;
+
             Heights = new float[baseDim, baseDim];
 
             Pheromones = new float[baseDim, baseDim];
